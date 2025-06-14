@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Product } from '@/types';
 import { loadProducts, saveProducts, generateId } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -155,162 +156,203 @@ const Products = () => {
     setIsDialogOpen(true);
   };
 
+  const ProductForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Product Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="Enter product name"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="sku">SKU/Code</Label>
+        <Input
+          id="sku"
+          value={formData.sku}
+          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+          placeholder="Enter SKU or product code"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="unitPrice">Unit Price (₱)</Label>
+        <Input
+          id="unitPrice"
+          type="number"
+          step="0.01"
+          min="0"
+          value={formData.unitPrice}
+          onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+          placeholder="0.00"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="stockQuantity">Stock Quantity</Label>
+        <Input
+          id="stockQuantity"
+          type="number"
+          min="0"
+          value={formData.stockQuantity}
+          onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+          placeholder="0"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-2 pt-4">
+        <Button type="submit" className="flex-1 btn-touch">
+          {editingProduct ? 'Update Product' : 'Add Product'}
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline"
+          className="flex-1 btn-touch"
+          onClick={() => setIsDialogOpen(false)}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Products & Inventory</h2>
-          <p className="text-gray-600">Manage your store's product catalog</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Products & Inventory</h2>
+          <p className="text-sm md:text-base text-gray-600">Manage your store's product catalog</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openAddDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Product Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter product name"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="sku">SKU/Code</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  placeholder="Enter SKU or product code"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="unitPrice">Unit Price (₱)</Label>
-                <Input
-                  id="unitPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.unitPrice}
-                  onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="stockQuantity">Stock Quantity</Label>
-                <Input
-                  id="stockQuantity"
-                  type="number"
-                  min="0"
-                  value={formData.stockQuantity}
-                  onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                  placeholder="0"
-                  required
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1">
-                  {editingProduct ? 'Update Product' : 'Add Product'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+
+        {/* Mobile Add Button */}
+        <div className="md:hidden">
+          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <SheetTrigger asChild>
+              <Button onClick={openAddDialog} className="w-full btn-touch">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[90vh]">
+              <SheetHeader className="mb-6">
+                <SheetTitle>
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                </SheetTitle>
+              </SheetHeader>
+              <ProductForm />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Add Button */}
+        <div className="hidden md:block">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openAddDialog}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                </DialogTitle>
+              </DialogHeader>
+              <ProductForm />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Search */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 md:pt-6">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search products by name or SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 input-touch"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Products List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {filteredProducts.map((product) => (
-          <Card key={product.id}>
+          <Card key={product.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <p className="text-sm text-gray-600">{product.sku}</p>
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base md:text-lg truncate">{product.name}</CardTitle>
+                  <p className="text-xs md:text-sm text-gray-600 truncate">{product.sku}</p>
                 </div>
                 <Badge 
                   variant={product.stockQuantity > 10 ? "secondary" : 
                     product.stockQuantity > 0 ? "outline" : "destructive"}
+                  className="text-xs"
                 >
-                  {product.stockQuantity} in stock
+                  {product.stockQuantity}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold text-green-600">
-                  ₱{product.unitPrice.toFixed(2)}
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(product)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(product)}
-                  >
-                    <Trash className="h-3 w-3" />
-                  </Button>
-                </div>
+            <CardContent className="space-y-3">
+              <div className="text-lg md:text-2xl font-bold text-green-600">
+                ₱{product.unitPrice.toFixed(2)}
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(product)}
+                  className="flex-1 touch-target"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(product)}
+                  className="touch-target"
+                >
+                  <Trash className="h-3 w-3" />
+                </Button>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* Empty State */}
       {filteredProducts.length === 0 && (
         <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-gray-500">
+          <CardContent className="text-center py-8 md:py-12">
+            <p className="text-gray-500 text-sm md:text-base">
               {searchTerm ? 'No products found matching your search.' : 'No products added yet.'}
             </p>
+            {!searchTerm && (
+              <Button onClick={openAddDialog} className="mt-4 btn-touch">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Product
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}

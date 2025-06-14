@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Customer, UtangPayment, Sale } from '@/types';
 import { 
   loadCustomers, 
@@ -16,7 +16,7 @@ import {
   generateId 
 } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, User, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash, User, DollarSign, History } from 'lucide-react';
 
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -221,196 +221,256 @@ const Customers = () => {
     );
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Customer Management</h2>
-          <p className="text-gray-600">Manage customers and their utang (credit) accounts</p>
+  const CustomerForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Customer Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="Enter customer name"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="contact">Contact Number</Label>
+        <Input
+          id="contact"
+          value={formData.contact}
+          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+          placeholder="Enter contact number"
+          className="input-touch"
+          required
+        />
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-2 pt-4">
+        <Button type="submit" className="flex-1 btn-touch">
+          {editingCustomer ? 'Update Customer' : 'Add Customer'}
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline"
+          className="flex-1 btn-touch"
+          onClick={() => setIsDialogOpen(false)}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+
+  const PaymentForm = () => (
+    selectedCustomer && (
+      <form onSubmit={handlePayment} className="space-y-4">
+        <div className="bg-gray-50 p-3 rounded-lg text-sm">
+          <p><strong>Customer:</strong> {selectedCustomer.name}</p>
+          <p><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openAddDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Customer Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter customer name"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="contact">Contact Number</Label>
-                <Input
-                  id="contact"
-                  value={formData.contact}
-                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  placeholder="Enter contact number"
-                  required
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1">
-                  {editingCustomer ? 'Update Customer' : 'Add Customer'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        
+        <div>
+          <Label htmlFor="paymentAmount">Payment Amount (₱)</Label>
+          <Input
+            id="paymentAmount"
+            type="number"
+            step="0.01"
+            min="0"
+            max={selectedCustomer.totalOwed}
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+            placeholder="0.00"
+            className="input-touch"
+            required
+          />
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2 pt-4">
+          <Button type="submit" className="flex-1 btn-touch">
+            Record Payment
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            className="flex-1 btn-touch"
+            onClick={() => setIsPaymentDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    )
+  );
+
+  return (
+    <div className="space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Customer Management</h2>
+          <p className="text-sm md:text-base text-gray-600">Manage customers and their utang (credit) accounts</p>
+        </div>
+
+        {/* Mobile Add Button */}
+        <div className="md:hidden">
+          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <SheetTrigger asChild>
+              <Button onClick={openAddDialog} className="w-full btn-touch">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customer
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh]">
+              <SheetHeader className="mb-6">
+                <SheetTitle>
+                  {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+                </SheetTitle>
+              </SheetHeader>
+              <CustomerForm />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Add Button */}
+        <div className="hidden md:block">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openAddDialog}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customer
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+                </DialogTitle>
+              </DialogHeader>
+              <CustomerForm />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Customers List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Customers Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {customers.map((customer) => (
-          <Card key={customer.id}>
+          <Card key={customer.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <User className="h-4 w-4" />
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base md:text-lg flex items-center gap-2 truncate">
+                    <User className="h-4 w-4 flex-shrink-0" />
                     {customer.name}
                   </CardTitle>
-                  <p className="text-sm text-gray-600">{customer.contact}</p>
+                  <p className="text-xs md:text-sm text-gray-600 truncate">{customer.contact}</p>
                 </div>
                 <Badge 
                   variant={customer.totalOwed > 0 ? "destructive" : "secondary"}
+                  className="text-xs"
                 >
-                  ₱{customer.totalOwed.toFixed(2)} owed
+                  ₱{customer.totalOwed.toFixed(2)}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {customer.totalOwed > 0 && (
-                  <Button
-                    size="sm"
-                    className="w-full mb-2"
-                    onClick={() => openPaymentDialog(customer)}
-                  >
-                    <DollarSign className="h-3 w-3 mr-1" />
-                    Record Payment
-                  </Button>
-                )}
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(customer)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(customer)}
-                    disabled={customer.totalOwed > 0}
-                  >
-                    <Trash className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                {/* Transaction History Preview */}
-                {getCustomerTransactions(customer.id).length > 0 && (
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-gray-500 mb-1">Recent Activity:</p>
-                    <div className="space-y-1">
-                      {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
-                        <div key={transaction.id} className="text-xs flex justify-between">
-                          <span>
-                            {'items' in transaction ? 'Purchase' : 'Payment'}
-                          </span>
-                          <span className={
-                            'items' in transaction ? 'text-red-600' : 'text-green-600'
-                          }>
-                            {'items' in transaction ? '+' : '-'}₱{
-                              ('total' in transaction ? transaction.total : transaction.amount).toFixed(2)
-                            }
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            <CardContent className="space-y-3">
+              {customer.totalOwed > 0 && (
+                <Button
+                  size="sm"
+                  className="w-full touch-target"
+                  onClick={() => openPaymentDialog(customer)}
+                >
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  Record Payment
+                </Button>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(customer)}
+                  className="flex-1 touch-target"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(customer)}
+                  disabled={customer.totalOwed > 0}
+                  className="touch-target"
+                >
+                  <Trash className="h-3 w-3" />
+                </Button>
               </div>
+
+              {/* Transaction History Preview */}
+              {getCustomerTransactions(customer.id).length > 0 && (
+                <div className="pt-2 border-t">
+                  <div className="flex items-center gap-1 mb-2">
+                    <History className="h-3 w-3 text-gray-500" />
+                    <p className="text-xs text-gray-500">Recent Activity:</p>
+                  </div>
+                  <div className="space-y-1">
+                    {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
+                      <div key={transaction.id} className="text-xs flex justify-between items-center">
+                        <span className="truncate">
+                          {'items' in transaction ? 'Purchase' : 'Payment'}
+                        </span>
+                        <span className={
+                          'items' in transaction ? 'text-red-600' : 'text-green-600'
+                        }>
+                          {'items' in transaction ? '+' : '-'}₱{
+                            ('total' in transaction ? transaction.total : transaction.amount).toFixed(2)
+                          }
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Payment Dialog */}
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-          </DialogHeader>
-          {selectedCustomer && (
-            <form onSubmit={handlePayment} className="space-y-4">
-              <div className="text-sm text-gray-600">
-                <p><strong>Customer:</strong> {selectedCustomer.name}</p>
-                <p><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
-              </div>
-              
-              <div>
-                <Label htmlFor="paymentAmount">Payment Amount (₱)</Label>
-                <Input
-                  id="paymentAmount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={selectedCustomer.totalOwed}
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1">
-                  Record Payment
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setIsPaymentDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Payment Dialog - Mobile */}
+      <div className="md:hidden">
+        <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <SheetContent side="bottom" className="h-[80vh]">
+            <SheetHeader className="mb-6">
+              <SheetTitle>Record Payment</SheetTitle>
+            </SheetHeader>
+            <PaymentForm />
+          </SheetContent>
+        </Sheet>
+      </div>
 
+      {/* Payment Dialog - Desktop */}
+      <div className="hidden md:block">
+        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Record Payment</DialogTitle>
+            </DialogHeader>
+            <PaymentForm />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Empty State */}
       {customers.length === 0 && (
         <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-gray-500">No customers added yet.</p>
+          <CardContent className="text-center py-8 md:py-12">
+            <p className="text-gray-500 text-sm md:text-base">No customers added yet.</p>
+            <Button onClick={openAddDialog} className="mt-4 btn-touch">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Customer
+            </Button>
           </CardContent>
         </Card>
       )}
