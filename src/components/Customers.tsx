@@ -233,7 +233,6 @@ const Customers = () => {
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="Enter customer name"
-          required
         />
       </MobileFormField>
       
@@ -245,7 +244,6 @@ const Customers = () => {
           value={formData.contact}
           onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
           placeholder="Enter contact number"
-          required
         />
       </MobileFormField>
       
@@ -285,7 +283,6 @@ const Customers = () => {
             value={paymentAmount}
             onChange={(e) => setPaymentAmount(e.target.value)}
             placeholder="0.00"
-            required
           />
         </MobileFormField>
         
@@ -346,7 +343,7 @@ const Customers = () => {
                 <DialogHeader>
                   <DialogTitle>
                     {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-                  </DialogTitle>
+                  </SheetTitle>
                 </DialogHeader>
                 <CustomerForm />
               </DialogContent>
