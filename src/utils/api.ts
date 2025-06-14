@@ -25,8 +25,8 @@ export async function fetchProducts(): Promise<Product[]> {
     id: p.id,
     name: p.name,
     sku: p.sku,
-    unitPrice: p.unit_price,
-    stockQuantity: p.stock_quantity,
+    unitPrice: parseFloat(p.unit_price),
+    stockQuantity: parseInt(p.stock_quantity),
     createdAt: p.created_at,
     updatedAt: p.updated_at
   }));
@@ -49,8 +49,8 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     id: p.id,
     name: p.name,
     sku: p.sku,
-    unitPrice: p.unit_price,
-    stockQuantity: p.stock_quantity,
+    unitPrice: parseFloat(p.unit_price),
+    stockQuantity: parseInt(p.stock_quantity),
     createdAt: p.created_at,
     updatedAt: p.updated_at
   };
@@ -74,8 +74,8 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
     id: p.id,
     name: p.name,
     sku: p.sku,
-    unitPrice: p.unit_price,
-    stockQuantity: p.stock_quantity,
+    unitPrice: parseFloat(p.unit_price),
+    stockQuantity: parseInt(p.stock_quantity),
     createdAt: p.created_at,
     updatedAt: p.updated_at
   };
