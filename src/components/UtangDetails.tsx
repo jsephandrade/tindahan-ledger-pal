@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { MobileForm, MobileFormField, MobileFormActions } from '@/components/ui/mobile-form';
+import { MobileInput } from '@/components/ui/mobile-input';
+import { MobileButton } from '@/components/ui/mobile-button';
 import { Customer, UtangTransaction, UtangPayment } from '@/types';
 import { 
   loadCustomers, 
@@ -19,16 +20,17 @@ import {
 } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, Receipt, User, CreditCard } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const UtangDetails = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [utangTransactions, setUtangTransactions] = useState<UtangTransaction[]>([]);
   const [utangPayments, setUtangPayments] = useState<UtangPayment[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<UtangTransaction | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setCustomers(loadCustomers());
@@ -140,21 +142,37 @@ const UtangDetails = () => {
 
   const PaymentForm = () => (
     selectedTransaction && (
-      <form onSubmit={handleTransactionPayment} className="space-y-4">
-        <div className="bg-gray-50 p-3 rounded-lg text-sm">
-          <p><strong>Product:</strong> {selectedTransaction.productName}</p>
-          <p><strong>Quantity:</strong> {selectedTransaction.quantity}</p>
-          <p><strong>Total Amount:</strong> ₱{selectedTransaction.totalAmount.toFixed(2)}</p>
-          <p><strong>Amount Paid:</strong> ₱{selectedTransaction.amountPaid.toFixed(2)}</p>
-          <p><strong>Remaining Balance:</strong> ₱{selectedTransaction.remainingBalance.toFixed(2)}</p>
+      <MobileForm onSubmit={handleTransactionPayment}>
+        <div className="bg-muted/50 p-4 rounded-lg mobile-item-spacing">
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="font-medium">Product:</span>
+              <span>{selectedTransaction.productName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Quantity:</span>
+              <span>{selectedTransaction.quantity}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Total:</span>
+              <span>₱{selectedTransaction.totalAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Paid:</span>
+              <span className="text-green-600">₱{selectedTransaction.amountPaid.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-base font-semibold">
+              <span>Balance:</span>
+              <span className="text-red-600">₱{selectedTransaction.remainingBalance.toFixed(2)}</span>
+            </div>
+          </div>
         </div>
         
-        <div>
-          <label htmlFor="paymentAmount" className="block text-sm font-medium mb-2">
-            Payment Amount (₱)
-          </label>
-          <Input
-            id="paymentAmount"
+        <MobileFormField 
+          label="Payment Amount (₱)" 
+          required
+        >
+          <MobileInput
             type="number"
             step="0.01"
             min="0"
@@ -162,96 +180,95 @@ const UtangDetails = () => {
             value={paymentAmount}
             onChange={(e) => setPaymentAmount(e.target.value)}
             placeholder="0.00"
-            className="input-touch"
             required
           />
-        </div>
+        </MobileFormField>
         
-        <div className="flex flex-col sm:flex-row gap-2 pt-4">
-          <Button type="submit" className="flex-1 btn-touch">
+        <MobileFormActions>
+          <MobileButton type="submit" fullWidth>
+            <DollarSign className="h-4 w-4 mr-2" />
             Record Payment
-          </Button>
-          <Button 
+          </MobileButton>
+          <MobileButton 
             type="button" 
             variant="outline"
-            className="flex-1 btn-touch"
+            fullWidth
             onClick={() => setIsPaymentDialogOpen(false)}
           >
             Cancel
-          </Button>
-        </div>
-      </form>
+          </MobileButton>
+        </MobileFormActions>
+      </MobileForm>
     )
   );
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">Utang Details</h2>
-        <p className="text-sm md:text-base text-gray-600">Detailed credit tracking per customer and product</p>
-      </div>
+    <div className="mobile-container">
+      <div className="mobile-section-spacing">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h2 className="mobile-title">Utang Details</h2>
+          <p className="mobile-subtitle">Track customer credit and payments</p>
+        </div>
 
-      {/* Customers with Utang */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {customers.filter(customer => customer.totalOwed > 0).map((customer) => {
-          const utangSummary = getCustomerUtangSummary(customer.id);
-          return (
-            <Card key={customer.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base md:text-lg flex items-center gap-2 truncate">
-                      <User className="h-4 w-4 flex-shrink-0" />
-                      {customer.name}
-                    </CardTitle>
-                    <p className="text-xs md:text-sm text-gray-600 truncate">{customer.contact}</p>
+        {/* Customers with Utang */}
+        <div className="mobile-grid-1-3">
+          {customers.filter(customer => customer.totalOwed > 0).map((customer) => {
+            const utangSummary = getCustomerUtangSummary(customer.id);
+            return (
+              <Card key={customer.id} className="mobile-card">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base flex items-center gap-2 truncate">
+                        <User className="h-4 w-4 flex-shrink-0" />
+                        {customer.name}
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground truncate mt-1">{customer.contact}</p>
+                    </div>
+                    <Badge variant="destructive" className="mobile-badge">
+                      ₱{customer.totalOwed.toFixed(2)}
+                    </Badge>
                   </div>
-                  <Badge variant="destructive" className="text-xs">
-                    ₱{customer.totalOwed.toFixed(2)}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Total Utang:</span>
-                    <span className="font-medium">₱{utangSummary.totalUtang.toFixed(2)}</span>
+                </CardHeader>
+                <CardContent className="mobile-item-spacing">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Total Utang:</span>
+                      <span className="font-medium">₱{utangSummary.totalUtang.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Paid:</span>
+                      <span className="font-medium text-green-600">₱{utangSummary.totalPaid.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span>Balance:</span>
+                      <span className="text-red-600">₱{utangSummary.remainingBalance.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Total Paid:</span>
-                    <span className="font-medium text-green-600">₱{utangSummary.totalPaid.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold">
-                    <span>Balance:</span>
-                    <span className="text-red-600">₱{utangSummary.remainingBalance.toFixed(2)}</span>
-                  </div>
-                </div>
 
-                {/* Mobile View Details Button */}
-                <div className="md:hidden">
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline" className="w-full touch-target">
-                        <Receipt className="h-3 w-3 mr-1" />
+                      <MobileButton variant="outline" fullWidth>
+                        <Receipt className="h-4 w-4 mr-2" />
                         View Details
-                      </Button>
+                      </MobileButton>
                     </SheetTrigger>
-                    <SheetContent side="bottom" className="h-[90vh]">
+                    <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "h-[90vh]" : "w-[400px] sm:w-[540px]"}>
                       <SheetHeader className="mb-6">
                         <SheetTitle>{customer.name} - Utang Details</SheetTitle>
                       </SheetHeader>
-                      <div className="space-y-4">
+                      <div className="mobile-item-spacing">
                         {utangSummary.transactions.map((transaction) => (
-                          <Card key={transaction.id}>
+                          <Card key={transaction.id} className="mobile-card">
                             <CardContent className="p-4">
-                              <div className="space-y-2">
+                              <div className="mobile-item-spacing">
                                 <div className="flex justify-between items-start">
                                   <h4 className="font-medium">{transaction.productName}</h4>
                                   <Badge variant={
                                     transaction.status === 'fully_paid' ? 'secondary' :
                                     transaction.status === 'partially_paid' ? 'outline' : 'destructive'
-                                  }>
+                                  } className="mobile-badge">
                                     {transaction.status.replace('_', ' ')}
                                   </Badge>
                                 </div>
@@ -274,14 +291,14 @@ const UtangDetails = () => {
                                   </div>
                                 </div>
                                 {transaction.remainingBalance > 0 && (
-                                  <Button
+                                  <MobileButton
                                     size="sm"
-                                    className="w-full mt-2"
+                                    fullWidth
                                     onClick={() => openPaymentDialog(transaction)}
                                   >
-                                    <DollarSign className="h-3 w-3 mr-1" />
+                                    <CreditCard className="h-3 w-3 mr-1" />
                                     Make Payment
-                                  </Button>
+                                  </MobileButton>
                                 )}
                               </div>
                             </CardContent>
@@ -290,106 +307,42 @@ const UtangDetails = () => {
                       </div>
                     </SheetContent>
                   </Sheet>
-                </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-                {/* Desktop View Details Button */}
-                <div className="hidden md:block">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Receipt className="h-3 w-3 mr-1" />
-                        View Details
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>{customer.name} - Utang Details</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Product</TableHead>
-                              <TableHead>Qty</TableHead>
-                              <TableHead>Total</TableHead>
-                              <TableHead>Paid</TableHead>
-                              <TableHead>Balance</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {utangSummary.transactions.map((transaction) => (
-                              <TableRow key={transaction.id}>
-                                <TableCell className="font-medium">{transaction.productName}</TableCell>
-                                <TableCell>{transaction.quantity}</TableCell>
-                                <TableCell>₱{transaction.totalAmount.toFixed(2)}</TableCell>
-                                <TableCell className="text-green-600">₱{transaction.amountPaid.toFixed(2)}</TableCell>
-                                <TableCell className="text-red-600">₱{transaction.remainingBalance.toFixed(2)}</TableCell>
-                                <TableCell>
-                                  <Badge variant={
-                                    transaction.status === 'fully_paid' ? 'secondary' :
-                                    transaction.status === 'partially_paid' ? 'outline' : 'destructive'
-                                  }>
-                                    {transaction.status.replace('_', ' ')}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  {transaction.remainingBalance > 0 && (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => openPaymentDialog(transaction)}
-                                    >
-                                      <CreditCard className="h-3 w-3 mr-1" />
-                                      Pay
-                                    </Button>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {/* Payment Dialog */}
+        {isMobile ? (
+          <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <SheetContent side="bottom" className="h-[80vh] mobile-sheet-content">
+              <SheetHeader className="mb-6">
+                <SheetTitle>Record Payment</SheetTitle>
+              </SheetHeader>
+              <PaymentForm />
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Record Payment</DialogTitle>
+              </DialogHeader>
+              <PaymentForm />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Empty State */}
+        {customers.filter(customer => customer.totalOwed > 0).length === 0 && (
+          <Card className="mobile-card">
+            <CardContent className="text-center py-12">
+              <p className="mobile-subtitle">No customers with outstanding utang.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* Payment Dialogs */}
-      <div className="md:hidden">
-        <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-          <SheetContent side="bottom" className="h-[80vh]">
-            <SheetHeader className="mb-6">
-              <SheetTitle>Record Payment</SheetTitle>
-            </SheetHeader>
-            <PaymentForm />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      <div className="hidden md:block">
-        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Record Payment</DialogTitle>
-            </DialogHeader>
-            <PaymentForm />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Empty State */}
-      {customers.filter(customer => customer.totalOwed > 0).length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8 md:py-12">
-            <p className="text-gray-500 text-sm md:text-base">No customers with outstanding utang.</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
