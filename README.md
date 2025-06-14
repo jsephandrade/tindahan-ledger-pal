@@ -83,3 +83,35 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Local Development
+
+1. Install backend requirements and run migrations:
+
+```sh
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+export DATABASE_URL=postgres://USER:PASS@HOST:PORT/DBNAME
+python myproject/manage.py migrate
+python myproject/manage.py runserver
+```
+
+2. In another terminal, install frontend dependencies and start the dev server:
+
+```sh
+npm install
+npm run dev
+```
+
+The app will be available at `http://localhost:5173` and will communicate with the backend running on port `8000`.
+
+## Building for Production
+
+To create a production build of the frontend run:
+
+```sh
+npm run build
+```
+
+Collect the generated files in `dist/` and configure Django or any static file host to serve them. Ensure the `VITE_API_URL` environment variable points to your deployed backend API.
