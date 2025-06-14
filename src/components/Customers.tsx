@@ -463,10 +463,6 @@ const Customers = () => {
           <Card className="mobile-card">
             <CardContent className="text-center py-12">
               <p className="mobile-subtitle mb-4">No customers added yet.</p>
-              <MobileButton onClick={openAddDialog}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Customer
-              </MobileButton>
             </CardContent>
           </Card>
         )}
