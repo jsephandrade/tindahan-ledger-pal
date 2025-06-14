@@ -2,9 +2,20 @@ import { Product, Customer } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json'
-});
+const tokenKey = 'auth_token';
+
+export const getToken = () => localStorage.getItem(tokenKey);
+export const setToken = (token: string) => localStorage.setItem(tokenKey, token);
+export const clearToken = () => localStorage.removeItem(tokenKey);
+
+const getHeaders = () => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+};
 
 export async function fetchProducts(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products/`, { headers: getHeaders() });
@@ -134,4 +145,24 @@ export async function updateCustomer(id: number, data: Partial<Customer>): Promi
 
 export async function deleteCustomer(id: number): Promise<void> {
   await fetch(`${BASE_URL}/customers/${id}/`, { method: 'DELETE', headers: getHeaders() });
+}
+
+export async function login(username: string, password: string): Promise<string> {
+  const res = await fetch(`${BASE_URL}/auth/login/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if (!res.ok) throw new Error('Login failed');
+  const data = await res.json();
+  return data.access;
+}
+
+export async function register(username: string, email: string, password: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/auth/register/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password })
+  });
+  if (!res.ok) throw new Error('Registration failed');
 }
