@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +66,7 @@ const Customers = () => {
 
     if (editingCustomer) {
       if (editingCustomer.id) {
-        await apiUpdateCustomer(parseInt(editingCustomer.id), {
+        await apiUpdateCustomer(editingCustomer.id, {
           name: formData.name,
           contact: formData.contact
         });
@@ -134,7 +135,7 @@ const Customers = () => {
     saveUtangPayments(allPayments);
 
     if (selectedCustomer.id) {
-      await apiUpdateCustomer(parseInt(selectedCustomer.id), {
+      await apiUpdateCustomer(selectedCustomer.id, {
         totalOwed: selectedCustomer.totalOwed - actualPayment
       });
     }
@@ -174,7 +175,7 @@ const Customers = () => {
 
     if (window.confirm(`Are you sure you want to delete ${customer.name}?`)) {
       if (customer.id) {
-        await apiDeleteCustomer(parseInt(customer.id));
+        await apiDeleteCustomer(customer.id);
         const updatedCustomers = await fetchCustomers();
         setCustomers(updatedCustomers);
         toast({ title: 'Customer Deleted', description: `${customer.name} deleted.` });

@@ -1,4 +1,3 @@
-
 import { Product, Customer } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -57,8 +56,9 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
   };
 }
 
-export async function updateProduct(id: number, data: Partial<Product>): Promise<Product> {
-  const res = await fetch(`${BASE_URL}/products/${id}/`, {
+export async function updateProduct(id: string, data: Partial<Product>): Promise<Product> {
+  const numericId = parseInt(id);
+  const res = await fetch(`${BASE_URL}/products/${numericId}/`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({
@@ -82,8 +82,9 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
   };
 }
 
-export async function deleteProduct(id: number): Promise<void> {
-  await fetch(`${BASE_URL}/products/${id}/`, { method: 'DELETE', headers: getHeaders() });
+export async function deleteProduct(id: string): Promise<void> {
+  const numericId = parseInt(id);
+  await fetch(`${BASE_URL}/products/${numericId}/`, { method: 'DELETE', headers: getHeaders() });
 }
 
 export async function fetchCustomers(): Promise<Customer[]> {
@@ -122,8 +123,9 @@ export async function createCustomer(data: Partial<Customer>): Promise<Customer>
   };
 }
 
-export async function updateCustomer(id: number, data: Partial<Customer>): Promise<Customer> {
-  const res = await fetch(`${BASE_URL}/customers/${id}/`, {
+export async function updateCustomer(id: string, data: Partial<Customer>): Promise<Customer> {
+  const numericId = parseInt(id);
+  const res = await fetch(`${BASE_URL}/customers/${numericId}/`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({
@@ -144,8 +146,9 @@ export async function updateCustomer(id: number, data: Partial<Customer>): Promi
   };
 }
 
-export async function deleteCustomer(id: number): Promise<void> {
-  await fetch(`${BASE_URL}/customers/${id}/`, { method: 'DELETE', headers: getHeaders() });
+export async function deleteCustomer(id: string): Promise<void> {
+  const numericId = parseInt(id);
+  await fetch(`${BASE_URL}/customers/${numericId}/`, { method: 'DELETE', headers: getHeaders() });
 }
 
 export async function login(username: string, password: string): Promise<string> {
