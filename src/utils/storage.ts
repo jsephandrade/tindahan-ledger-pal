@@ -22,6 +22,15 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+// Clear all stored data
+export const clearAllData = (): void => {
+  localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+  localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
+  localStorage.removeItem(STORAGE_KEYS.SALES);
+  localStorage.removeItem(STORAGE_KEYS.UTANG_PAYMENTS);
+  console.log('All mock data cleared from localStorage');
+};
+
 // Product operations
 export const saveProducts = (products: Product[]): void => {
   saveToStorage(STORAGE_KEYS.PRODUCTS, products);
@@ -58,19 +67,16 @@ export const loadUtangPayments = (): UtangPayment[] => {
   return loadFromStorage<UtangPayment>(STORAGE_KEYS.UTANG_PAYMENTS);
 };
 
-// Initialize empty storage arrays if they don't exist
+// Initialize empty storage arrays and clear any existing mock data
 export const initializeSampleData = (): void => {
-  // Initialize empty arrays only if storage is not set
-  if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-    saveProducts([]);
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.CUSTOMERS)) {
-    saveCustomers([]);
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.SALES)) {
-    saveSales([]);
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.UTANG_PAYMENTS)) {
-    saveUtangPayments([]);
-  }
+  // Clear any existing data first
+  clearAllData();
+  
+  // Initialize with empty arrays
+  saveProducts([]);
+  saveCustomers([]);
+  saveSales([]);
+  saveUtangPayments([]);
+  
+  console.log('Storage initialized with empty arrays');
 };
