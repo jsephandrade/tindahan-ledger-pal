@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,21 +117,18 @@ const Customers = () => {
       return;
     }
 
-    if (amount > selectedCustomer.totalOwed) {
-      toast({
-        title: "Payment Too Large",
-        description: "Payment amount cannot exceed the outstanding balance.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Calculate change if overpayment
+    const change = amount > selectedCustomer.totalOwed ? amount - selectedCustomer.totalOwed : 0;
+    const actualPayment = Math.min(amount, selectedCustomer.totalOwed);
 
     // Create payment record
     const payment: UtangPayment = {
       id: generateId(),
       customerId: selectedCustomer.id,
-      amount,
-      description: `Payment for utang balance`,
+      amount: actualPayment,
+      description: change > 0 
+        ? `Payment for utang balance (Change: ₱${change.toFixed(2)})`
+        : `Payment for utang balance`,
       createdAt: new Date().toISOString()
     };
 
@@ -141,7 +137,7 @@ const Customers = () => {
       customer.id === selectedCustomer.id
         ? {
             ...customer,
-            totalOwed: customer.totalOwed - amount,
+            totalOwed: customer.totalOwed - actualPayment,
             updatedAt: new Date().toISOString()
           }
         : customer
@@ -160,7 +156,9 @@ const Customers = () => {
 
     toast({
       title: "Payment Recorded",
-      description: `Payment of ₱${amount.toFixed(2)} has been recorded.`
+      description: change > 0 
+        ? `Payment of ₱${actualPayment.toFixed(2)} recorded. Change: ₱${change.toFixed(2)}`
+        : `Payment of ₱${actualPayment.toFixed(2)} has been recorded.`
     });
   };
 
@@ -264,45 +262,57 @@ const Customers = () => {
     </MobileForm>
   );
 
-  const PaymentForm = () => (
-    selectedCustomer && (
-      <MobileForm onSubmit={handlePayment}>
-        <div className="bg-gray-50 p-4 rounded-lg mobile-item-spacing">
-          <p className="text-sm"><strong>Customer:</strong> {selectedCustomer.name}</p>
-          <p className="text-sm"><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
-        </div>
-        
-        <MobileFormField
-          label="Payment Amount (₱)"
-          required
-        >
-          <MobileInput
-            type="number"
-            step="0.01"
-            min="0"
-            max={selectedCustomer.totalOwed}
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            placeholder="0.00"
-          />
-        </MobileFormField>
-        
-        <MobileFormActions>
-          <MobileButton type="submit" fullWidth>
-            Record Payment
-          </MobileButton>
-          <MobileButton 
-            type="button" 
-            variant="outline"
-            fullWidth
-            onClick={() => setIsPaymentDialogOpen(false)}
+  const PaymentForm = () => {
+    const amount = parseFloat(paymentAmount) || 0;
+    const change = selectedCustomer && amount > selectedCustomer.totalOwed ? amount - selectedCustomer.totalOwed : 0;
+
+    return (
+      selectedCustomer && (
+        <MobileForm onSubmit={handlePayment}>
+          <div className="bg-gray-50 p-4 rounded-lg mobile-item-spacing">
+            <p className="text-sm"><strong>Customer:</strong> {selectedCustomer.name}</p>
+            <p className="text-sm"><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
+          </div>
+          
+          <MobileFormField
+            label="Payment Amount (₱)"
+            required
           >
-            Cancel
-          </MobileButton>
-        </MobileFormActions>
-      </MobileForm>
-    )
-  );
+            <MobileInput
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(e.target.value)}
+              placeholder="0.00"
+            />
+          </MobileFormField>
+
+          {change > 0 && (
+            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>Change to give:</strong> ₱{change.toFixed(2)}
+              </p>
+            </div>
+          )}
+          
+          <MobileFormActions>
+            <MobileButton type="submit" fullWidth>
+              Record Payment
+            </MobileButton>
+            <MobileButton 
+              type="button" 
+              variant="outline"
+              fullWidth
+              onClick={() => setIsPaymentDialogOpen(false)}
+            >
+              Cancel
+            </MobileButton>
+          </MobileFormActions>
+        </MobileForm>
+      )
+    );
+  };
 
   return (
     <div className="mobile-container">

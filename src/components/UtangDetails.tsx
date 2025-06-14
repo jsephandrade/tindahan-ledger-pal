@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -74,30 +73,27 @@ const UtangDetails = () => {
       return;
     }
 
-    if (amount > selectedTransaction.remainingBalance) {
-      toast({
-        title: "Payment Too Large",
-        description: "Payment amount cannot exceed the remaining balance.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Calculate change if overpayment
+    const change = amount > selectedTransaction.remainingBalance ? amount - selectedTransaction.remainingBalance : 0;
+    const actualPayment = Math.min(amount, selectedTransaction.remainingBalance);
 
     // Create payment record
     const payment: UtangPayment = {
       id: generateId(),
       customerId: selectedTransaction.customerId,
-      amount,
-      description: `Payment for ${selectedTransaction.productName}`,
+      amount: actualPayment,
+      description: change > 0 
+        ? `Payment for ${selectedTransaction.productName} (Change: ₱${change.toFixed(2)})`
+        : `Payment for ${selectedTransaction.productName}`,
       createdAt: new Date().toISOString()
     };
 
     // Update transaction
     const updatedTransaction = {
       ...selectedTransaction,
-      amountPaid: selectedTransaction.amountPaid + amount,
-      remainingBalance: selectedTransaction.remainingBalance - amount,
-      status: (selectedTransaction.remainingBalance - amount <= 0) ? 'fully_paid' as const : 'partially_paid' as const,
+      amountPaid: selectedTransaction.amountPaid + actualPayment,
+      remainingBalance: selectedTransaction.remainingBalance - actualPayment,
+      status: (selectedTransaction.remainingBalance - actualPayment <= 0) ? 'fully_paid' as const : 'partially_paid' as const,
       updatedAt: new Date().toISOString()
     };
 
@@ -106,7 +102,7 @@ const UtangDetails = () => {
     if (customer) {
       const updatedCustomers = customers.map(c =>
         c.id === selectedTransaction.customerId
-          ? { ...c, totalOwed: c.totalOwed - amount, updatedAt: new Date().toISOString() }
+          ? { ...c, totalOwed: c.totalOwed - actualPayment, updatedAt: new Date().toISOString() }
           : c
       );
       saveCustomers(updatedCustomers);
@@ -130,7 +126,9 @@ const UtangDetails = () => {
 
     toast({
       title: "Payment Recorded",
-      description: `Payment of ₱${amount.toFixed(2)} recorded for ${updatedTransaction.productName}.`
+      description: change > 0 
+        ? `Payment of ₱${actualPayment.toFixed(2)} recorded for ${updatedTransaction.productName}. Change: ₱${change.toFixed(2)}`
+        : `Payment of ₱${actualPayment.toFixed(2)} recorded for ${updatedTransaction.productName}.`
     });
   };
 
@@ -140,67 +138,79 @@ const UtangDetails = () => {
     setIsPaymentDialogOpen(true);
   };
 
-  const PaymentForm = () => (
-    selectedTransaction && (
-      <MobileForm onSubmit={handleTransactionPayment}>
-        <div className="bg-muted/50 p-4 rounded-lg mobile-item-spacing">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="font-medium">Product:</span>
-              <span>{selectedTransaction.productName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Quantity:</span>
-              <span>{selectedTransaction.quantity}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Total:</span>
-              <span>₱{selectedTransaction.totalAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Paid:</span>
-              <span className="text-green-600">₱{selectedTransaction.amountPaid.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-base font-semibold">
-              <span>Balance:</span>
-              <span className="text-red-600">₱{selectedTransaction.remainingBalance.toFixed(2)}</span>
+  const PaymentForm = () => {
+    const amount = parseFloat(paymentAmount) || 0;
+    const change = selectedTransaction && amount > selectedTransaction.remainingBalance ? amount - selectedTransaction.remainingBalance : 0;
+
+    return (
+      selectedTransaction && (
+        <MobileForm onSubmit={handleTransactionPayment}>
+          <div className="bg-muted/50 p-4 rounded-lg mobile-item-spacing">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="font-medium">Product:</span>
+                <span>{selectedTransaction.productName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Quantity:</span>
+                <span>{selectedTransaction.quantity}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Total:</span>
+                <span>₱{selectedTransaction.totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Paid:</span>
+                <span className="text-green-600">₱{selectedTransaction.amountPaid.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-base font-semibold">
+                <span>Balance:</span>
+                <span className="text-red-600">₱{selectedTransaction.remainingBalance.toFixed(2)}</span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <MobileFormField 
-          label="Payment Amount (₱)" 
-          required
-        >
-          <MobileInput
-            type="number"
-            step="0.01"
-            min="0"
-            max={selectedTransaction.remainingBalance}
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            placeholder="0.00"
+          
+          <MobileFormField 
+            label="Payment Amount (₱)" 
             required
-          />
-        </MobileFormField>
-        
-        <MobileFormActions>
-          <MobileButton type="submit" fullWidth>
-            <DollarSign className="h-4 w-4 mr-2" />
-            Record Payment
-          </MobileButton>
-          <MobileButton 
-            type="button" 
-            variant="outline"
-            fullWidth
-            onClick={() => setIsPaymentDialogOpen(false)}
           >
-            Cancel
-          </MobileButton>
-        </MobileFormActions>
-      </MobileForm>
-    )
-  );
+            <MobileInput
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(e.target.value)}
+              placeholder="0.00"
+              required
+            />
+          </MobileFormField>
+
+          {change > 0 && (
+            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>Change to give:</strong> ₱{change.toFixed(2)}
+              </p>
+            </div>
+          )}
+          
+          <MobileFormActions>
+            <MobileButton type="submit" fullWidth>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Record Payment
+            </MobileButton>
+            <MobileButton 
+              type="button" 
+              variant="outline"
+              fullWidth
+              onClick={() => setIsPaymentDialogOpen(false)}
+            >
+              Cancel
+            </MobileButton>
+          </MobileFormActions>
+        </MobileForm>
+      )
+    );
+  };
 
   return (
     <div className="mobile-container">
