@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import {
   Search, 
   User, 
   Calendar,
-  Cash
+  DollarSign
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -19,7 +18,7 @@ interface LayoutProps {
 const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'pos', label: 'Point of Sale', icon: Cash },
+    { id: 'pos', label: 'Point of Sale', icon: DollarSign },
     { id: 'products', label: 'Products', icon: Search },
     { id: 'customers', label: 'Customers', icon: User },
     { id: 'reports', label: 'Reports', icon: Calendar }

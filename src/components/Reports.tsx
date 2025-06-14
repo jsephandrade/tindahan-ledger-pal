@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sale, Customer, UtangPayment } from '@/types';
 import { loadSales, loadCustomers, loadUtangPayments } from '@/utils/storage';
-import { Calendar, Cash, User, TrendingUp } from 'lucide-react';
+import { Calendar, DollarSign, User, TrendingUp } from 'lucide-react';
 
 const Reports = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -88,7 +87,7 @@ const Reports = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  <Cash className="h-4 w-4" />
+                  <DollarSign className="h-4 w-4" />
                   Cash Sales
                 </CardTitle>
               </CardHeader>

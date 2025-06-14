@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import {
   generateId 
 } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, User, Cash } from 'lucide-react';
+import { Plus, Edit, Trash, User, DollarSign } from 'lucide-react';
 
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -310,7 +309,7 @@ const Customers = () => {
                     className="w-full mb-2"
                     onClick={() => openPaymentDialog(customer)}
                   >
-                    <Cash className="h-3 w-3 mr-1" />
+                    <DollarSign className="h-3 w-3 mr-1" />
                     Record Payment
                   </Button>
                 )}

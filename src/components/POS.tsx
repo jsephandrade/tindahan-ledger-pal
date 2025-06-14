@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Product, Customer, Sale, SaleItem } from '@/types';
 import { loadProducts, loadCustomers, saveSales, loadSales, saveProducts, saveCustomers } from '@/utils/storage';
 import { generateId } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Trash, Cash, User } from 'lucide-react';
+import { Search, Plus, Trash, DollarSign, User } from 'lucide-react';
 
 const POS = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -286,7 +285,7 @@ const POS = () => {
                           <SelectContent>
                             <SelectItem value="cash">
                               <div className="flex items-center gap-2">
-                                <Cash className="h-4 w-4" />
+                                <DollarSign className="h-4 w-4" />
                                 Cash Payment
                               </div>
                             </SelectItem>
