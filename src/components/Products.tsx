@@ -80,7 +80,7 @@ const Products = () => {
     if (editingProduct) {
       // Update existing product
       if (editingProduct?.id) {
-        await apiUpdateProduct(Number(editingProduct.id), {
+        await apiUpdateProduct(editingProduct.id, {
           name: formData.name,
           sku: formData.sku,
           unitPrice: unitPrice,
@@ -118,7 +118,7 @@ const Products = () => {
   const handleDelete = async (product: Product) => {
     if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
       if (product.id) {
-        await apiDeleteProduct(Number(product.id));
+        await apiDeleteProduct(product.id);
         const updatedProducts = await fetchProducts();
         setProducts(updatedProducts);
         toast({ title: 'Product Deleted', description: `${product.name} deleted.` });
