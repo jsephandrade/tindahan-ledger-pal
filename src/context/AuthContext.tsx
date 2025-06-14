@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { login as apiLogin, register as apiRegister, getToken as loadToken, setToken as storeToken, clearToken as removeToken } from '@/utils/api';
 
 interface AuthContextType {
@@ -16,12 +16,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const t = loadToken();
-    if (t) setToken(t);
-  }, []);
+  const [token, setToken] = useState<string | null>(() => loadToken());
 
   const login = async (username: string, password: string) => {
     const newToken = await apiLogin(username, password);
