@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { login as apiLogin, register as apiRegister, getToken as loadToken, setToken as storeToken, clearToken as removeToken } from '@/utils/api';
 
 interface AuthContextType {
-  token: string | null;
+  token: string | null | undefined;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   register: (username: string, email: string, password: string) => Promise<void>;
@@ -16,11 +16,10 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    const t = loadToken();
-    if (t) setToken(t);
+    setToken(loadToken());
   }, []);
 
   const login = async (username: string, password: string) => {
