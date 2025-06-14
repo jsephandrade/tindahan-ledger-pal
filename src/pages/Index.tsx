@@ -1,13 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import Dashboard from '@/components/Dashboard';
+import POS from '@/components/POS';
+import Products from '@/components/Products';
+import Customers from '@/components/Customers';
+import Reports from '@/components/Reports';
+import { initializeSampleData } from '@/utils/storage';
 
 const Index = () => {
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  useEffect(() => {
+    // Initialize sample data on first load
+    initializeSampleData();
+  }, []);
+
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'pos':
+        return <POS />;
+      case 'products':
+        return <Products />;
+      case 'customers':
+        return <Customers />;
+      case 'reports':
+        return <Reports />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+      {renderCurrentPage()}
+    </Layout>
   );
 };
 
