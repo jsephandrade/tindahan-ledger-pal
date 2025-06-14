@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -206,9 +207,9 @@ const MobilePOS = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="mobile-container space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">Point of Sale</h2>
           <p className="text-sm text-gray-600">Process sales quickly</p>
