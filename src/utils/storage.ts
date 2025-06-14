@@ -58,81 +58,19 @@ export const loadUtangPayments = (): UtangPayment[] => {
   return loadFromStorage<UtangPayment>(STORAGE_KEYS.UTANG_PAYMENTS);
 };
 
-// Initialize with sample data if empty
+// Initialize empty storage arrays if they don't exist
 export const initializeSampleData = (): void => {
-  const products = loadProducts();
-  const customers = loadCustomers();
-
-  if (products.length === 0) {
-    const sampleProducts: Product[] = [
-      {
-        id: generateId(),
-        name: 'Rice (1kg)',
-        sku: 'RICE001',
-        unitPrice: 55,
-        stockQuantity: 50,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: generateId(),
-        name: 'Instant Noodles',
-        sku: 'NOODLE001',
-        unitPrice: 15,
-        stockQuantity: 100,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: generateId(),
-        name: 'Cooking Oil (1L)',
-        sku: 'OIL001',
-        unitPrice: 85,
-        stockQuantity: 25,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: generateId(),
-        name: 'Soft Drinks',
-        sku: 'SODA001',
-        unitPrice: 25,
-        stockQuantity: 48,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: generateId(),
-        name: 'Bread',
-        sku: 'BREAD001',
-        unitPrice: 35,
-        stockQuantity: 12,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-    saveProducts(sampleProducts);
+  // Initialize empty arrays only if storage is not set
+  if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+    saveProducts([]);
   }
-
-  if (customers.length === 0) {
-    const sampleCustomers: Customer[] = [
-      {
-        id: generateId(),
-        name: 'Maria Santos',
-        contact: '09171234567',
-        totalOwed: 250,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: generateId(),
-        name: 'Juan Dela Cruz',
-        contact: '09187654321',
-        totalOwed: 120,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-    saveCustomers(sampleCustomers);
+  if (!localStorage.getItem(STORAGE_KEYS.CUSTOMERS)) {
+    saveCustomers([]);
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.SALES)) {
+    saveSales([]);
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.UTANG_PAYMENTS)) {
+    saveUtangPayments([]);
   }
 };
