@@ -1,7 +1,19 @@
 
 import { Product, Customer } from '@/types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Determine a sensible default API base URL.
+// - When running on localhost during development we assume the Django server
+//   is on port 8000.
+// - When accessed from another device (e.g. phone) we fall back to a relative
+//   path so requests go to the same host as the frontend.
+const DEFAULT_BASE_URL =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000/api'
+    : '/api';
+
+// `VITE_API_URL` can override this when deploying to a different backend URL.
+const BASE_URL = import.meta.env.VITE_API_URL || DEFAULT_BASE_URL;
 
 const tokenKey = 'auth_token';
 
