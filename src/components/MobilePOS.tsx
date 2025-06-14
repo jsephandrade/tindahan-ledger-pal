@@ -4,9 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Product, Customer, Sale, SaleItem } from '@/types';
-import { loadProducts, loadCustomers, saveSales, loadSales, saveProducts, saveCustomers } from '@/utils/storage';
-import { generateId } from '@/utils/storage';
+import { Product, Customer, Sale, SaleItem, UtangTransaction } from '@/types';
+import { 
+  loadProducts, 
+  loadCustomers, 
+  saveSales, 
+  loadSales, 
+  saveProducts, 
+  saveCustomers,
+  saveUtangTransactions,
+  loadUtangTransactions,
+  generateId 
+} from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Trash, DollarSign, User, ShoppingCart } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -143,14 +152,37 @@ const MobilePOS = () => {
       return product;
     });
 
-    // Update customer utang if applicable
+    // Update customer utang if applicable and create utang transactions
     let updatedCustomers = customers;
+    let utangTransactions: UtangTransaction[] = [];
+
     if (paymentType === 'utang' && customer) {
       updatedCustomers = customers.map(c =>
         c.id === selectedCustomer
           ? { ...c, totalOwed: c.totalOwed + total, updatedAt: new Date().toISOString() }
           : c
       );
+
+      // Create individual utang transactions for each cart item
+      utangTransactions = cart.map(item => ({
+        id: generateId(),
+        customerId: selectedCustomer,
+        saleId: sale.id,
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalAmount: item.total,
+        amountPaid: 0,
+        remainingBalance: item.total,
+        status: 'unpaid' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      // Save utang transactions
+      const existingUtangTransactions = loadUtangTransactions();
+      saveUtangTransactions([...existingUtangTransactions, ...utangTransactions]);
     }
 
     // Save everything

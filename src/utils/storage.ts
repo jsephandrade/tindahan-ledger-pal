@@ -1,11 +1,11 @@
-
 import { Product, Customer, Sale, UtangPayment } from '@/types';
 
 const STORAGE_KEYS = {
   PRODUCTS: 'sari_products',
   CUSTOMERS: 'sari_customers',
   SALES: 'sari_sales',
-  UTANG_PAYMENTS: 'sari_utang_payments'
+  UTANG_PAYMENTS: 'sari_utang_payments',
+  UTANG_TRANSACTIONS: 'sari_utang_transactions'
 };
 
 // Generic storage utilities
@@ -28,6 +28,7 @@ export const clearAllData = (): void => {
   localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
   localStorage.removeItem(STORAGE_KEYS.SALES);
   localStorage.removeItem(STORAGE_KEYS.UTANG_PAYMENTS);
+  localStorage.removeItem(STORAGE_KEYS.UTANG_TRANSACTIONS);
   console.log('All mock data cleared from localStorage');
 };
 
@@ -67,6 +68,15 @@ export const loadUtangPayments = (): UtangPayment[] => {
   return loadFromStorage<UtangPayment>(STORAGE_KEYS.UTANG_PAYMENTS);
 };
 
+// Utang transaction operations
+export const saveUtangTransactions = (transactions: any[]): void => {
+  saveToStorage(STORAGE_KEYS.UTANG_TRANSACTIONS, transactions);
+};
+
+export const loadUtangTransactions = (): any[] => {
+  return loadFromStorage<any>(STORAGE_KEYS.UTANG_TRANSACTIONS);
+};
+
 // Initialize empty storage arrays and clear any existing mock data
 export const initializeSampleData = (): void => {
   // Clear any existing data first
@@ -77,6 +87,7 @@ export const initializeSampleData = (): void => {
   saveCustomers([]);
   saveSales([]);
   saveUtangPayments([]);
+  saveUtangTransactions([]);
   
   console.log('Storage initialized with empty arrays');
 };
