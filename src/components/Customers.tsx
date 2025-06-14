@@ -65,7 +65,7 @@ const Customers = () => {
 
     if (editingCustomer) {
       if (editingCustomer.id) {
-        await apiUpdateCustomer(Number(editingCustomer.id), {
+        await apiUpdateCustomer(parseInt(editingCustomer.id), {
           name: formData.name,
           contact: formData.contact
         });
@@ -111,7 +111,7 @@ const Customers = () => {
     // Create payment record
     const payment: UtangPayment = {
       id: generateId(),
-      customerId: String(selectedCustomer.id),
+      customerId: selectedCustomer.id,
       amount: actualPayment,
       description: change > 0 
         ? `Payment for utang balance (Change: ₱${change.toFixed(2)})`
@@ -134,7 +134,7 @@ const Customers = () => {
     saveUtangPayments(allPayments);
 
     if (selectedCustomer.id) {
-      await apiUpdateCustomer(Number(selectedCustomer.id), {
+      await apiUpdateCustomer(parseInt(selectedCustomer.id), {
         totalOwed: selectedCustomer.totalOwed - actualPayment
       });
     }
@@ -174,7 +174,7 @@ const Customers = () => {
 
     if (window.confirm(`Are you sure you want to delete ${customer.name}?`)) {
       if (customer.id) {
-        await apiDeleteCustomer(Number(customer.id));
+        await apiDeleteCustomer(parseInt(customer.id));
         const updatedCustomers = await fetchCustomers();
         setCustomers(updatedCustomers);
         toast({ title: 'Customer Deleted', description: `${customer.name} deleted.` });

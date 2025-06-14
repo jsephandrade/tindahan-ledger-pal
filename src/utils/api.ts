@@ -1,3 +1,4 @@
+
 import { Product, Customer } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -22,7 +23,7 @@ export async function fetchProducts(): Promise<Product[]> {
   if (!res.ok) throw new Error('Failed to fetch products');
   const data = await res.json();
   return data.map((p: any) => ({
-    id: p.id,
+    id: String(p.id),
     name: p.name,
     sku: p.sku,
     unitPrice: parseFloat(p.unit_price),
@@ -39,14 +40,14 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unit_price ?? data.unitPrice,
-      stock_quantity: data.stock_quantity ?? data.stockQuantity
+      unit_price: data.unitPrice,
+      stock_quantity: data.stockQuantity
     })
   });
   if (!res.ok) throw new Error('Failed to create product');
   const p = await res.json();
   return {
-    id: p.id,
+    id: String(p.id),
     name: p.name,
     sku: p.sku,
     unitPrice: parseFloat(p.unit_price),
@@ -63,15 +64,15 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unit_price ?? data.unitPrice,
-      stock_quantity: data.stock_quantity ?? data.stockQuantity,
+      unit_price: data.unitPrice,
+      stock_quantity: data.stockQuantity,
       total_owed: (data as any).total_owed
     })
   });
   if (!res.ok) throw new Error('Failed to update product');
   const p = await res.json();
   return {
-    id: p.id,
+    id: String(p.id),
     name: p.name,
     sku: p.sku,
     unitPrice: parseFloat(p.unit_price),
@@ -90,7 +91,7 @@ export async function fetchCustomers(): Promise<Customer[]> {
   if (!res.ok) throw new Error('Failed to fetch customers');
   const data = await res.json();
   return data.map((c: any) => ({
-    id: c.id,
+    id: String(c.id),
     name: c.name,
     contact: c.contact,
     totalOwed: c.total_owed,
@@ -106,13 +107,13 @@ export async function createCustomer(data: Partial<Customer>): Promise<Customer>
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.total_owed ?? data.totalOwed
+      total_owed: data.totalOwed || 0
     })
   });
   if (!res.ok) throw new Error('Failed to create customer');
   const c = await res.json();
   return {
-    id: c.id,
+    id: String(c.id),
     name: c.name,
     contact: c.contact,
     totalOwed: c.total_owed,
@@ -128,13 +129,13 @@ export async function updateCustomer(id: number, data: Partial<Customer>): Promi
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.total_owed ?? data.totalOwed
+      total_owed: data.totalOwed
     })
   });
   if (!res.ok) throw new Error('Failed to update customer');
   const c = await res.json();
   return {
-    id: c.id,
+    id: String(c.id),
     name: c.name,
     contact: c.contact,
     totalOwed: c.total_owed,
