@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardStats, Product } from '@/types';
-import { loadProducts, loadSales, loadCustomers } from '@/utils/storage';
+import { fetchProducts, fetchCustomers } from '@/utils/api';
+import { loadSales } from '@/utils/storage';
 
 const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -15,10 +16,10 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const calculateStats = () => {
-      const products = loadProducts();
+    const calculateStats = async () => {
+      const products = await fetchProducts();
+      const customers = await fetchCustomers();
       const sales = loadSales();
-      const customers = loadCustomers();
       
       const today = new Date().toDateString();
       const todaySales = sales.filter(sale => 

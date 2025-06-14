@@ -1,5 +1,5 @@
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   sku: string;
   unitPrice: number;
@@ -9,7 +9,7 @@ export interface Product {
 }
 
 export interface Customer {
-  id: string;
+  id: number;
   name: string;
   contact: string;
   totalOwed: number;

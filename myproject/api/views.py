@@ -1,6 +1,6 @@
 from rest_framework import generics, viewsets, permissions
-from .models import Task, User
-from .serializers import TaskSerializer, UserSerializer
+from .models import Task, User, Product, Customer
+from .serializers import TaskSerializer, UserSerializer, ProductSerializer, CustomerSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -15,6 +15,28 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Task.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Product.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    serializer_class = CustomerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Customer.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

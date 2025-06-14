@@ -7,7 +7,12 @@ import { MobileForm, MobileFormField, MobileFormActions } from '@/components/ui/
 import { MobileInput } from '@/components/ui/mobile-input';
 import { MobileButton } from '@/components/ui/mobile-button';
 import { Product } from '@/types';
-import { loadProducts, saveProducts, generateId } from '@/utils/storage';
+import {
+  fetchProducts,
+  createProduct,
+  updateProduct as apiUpdateProduct,
+  deleteProduct as apiDeleteProduct
+} from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Plus, Edit, Trash, Search } from 'lucide-react';
@@ -27,7 +32,9 @@ const Products = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    setProducts(loadProducts());
+    fetchProducts().then(setProducts).catch(() => {
+      toast({ title: 'Error', description: 'Failed to load products', variant: 'destructive' });
+    });
   }, []);
 
   const filteredProducts = products.filter(product =>
@@ -72,52 +79,26 @@ const Products = () => {
     
     if (editingProduct) {
       // Update existing product
-      updatedProducts = products.map(product =>
-        product.id === editingProduct.id
-          ? {
-              ...product,
-              name: formData.name,
-              sku: formData.sku,
-              unitPrice,
-              stockQuantity,
-              updatedAt: new Date().toISOString()
-            }
-          : product
-      );
-      toast({
-        title: "Product Updated",
-        description: `${formData.name} has been updated successfully.`
-      });
-    } else {
-      // Check for duplicate SKU
-      if (products.some(p => p.sku === formData.sku)) {
-        toast({
-          title: "Duplicate SKU",
-          description: "A product with this SKU already exists.",
-          variant: "destructive"
+      if (editingProduct?.id) {
+        await apiUpdateProduct(Number(editingProduct.id), {
+          name: formData.name,
+          sku: formData.sku,
+          unit_price: unitPrice,
+          stock_quantity: stockQuantity
         });
-        return;
+        toast({ title: 'Product Updated', description: `${formData.name} updated.` });
       }
-
-      // Create new product
-      const newProduct: Product = {
-        id: generateId(),
+      updatedProducts = await fetchProducts();
+    } else {
+      await createProduct({
         name: formData.name,
         sku: formData.sku,
-        unitPrice,
-        stockQuantity,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      updatedProducts = [...products, newProduct];
-      toast({
-        title: "Product Added",
-        description: `${formData.name} has been added successfully.`
+        unit_price: unitPrice,
+        stock_quantity: stockQuantity
       });
+      updatedProducts = await fetchProducts();
+      toast({ title: 'Product Added', description: `${formData.name} added.` });
     }
-
-    saveProducts(updatedProducts);
     setProducts(updatedProducts);
     resetForm();
     setIsDialogOpen(false);
@@ -134,16 +115,14 @@ const Products = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (product: Product) => {
+  const handleDelete = async (product: Product) => {
     if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
-      const updatedProducts = products.filter(p => p.id !== product.id);
-      saveProducts(updatedProducts);
-      setProducts(updatedProducts);
-      
-      toast({
-        title: "Product Deleted",
-        description: `${product.name} has been deleted.`
-      });
+      if (product.id) {
+        await apiDeleteProduct(Number(product.id));
+        const updatedProducts = await fetchProducts();
+        setProducts(updatedProducts);
+        toast({ title: 'Product Deleted', description: `${product.name} deleted.` });
+      }
     }
   };
 

@@ -7,13 +7,17 @@ import { MobileForm, MobileFormField, MobileFormActions } from '@/components/ui/
 import { MobileInput } from '@/components/ui/mobile-input';
 import { MobileButton } from '@/components/ui/mobile-button';
 import { Customer, UtangPayment, Sale } from '@/types';
-import { 
-  loadCustomers, 
-  saveCustomers, 
-  loadUtangPayments, 
-  saveUtangPayments, 
-  loadSales, 
-  generateId 
+import {
+  fetchCustomers,
+  createCustomer,
+  updateCustomer as apiUpdateCustomer,
+  deleteCustomer as apiDeleteCustomer
+} from '@/utils/api';
+import {
+  loadUtangPayments,
+  saveUtangPayments,
+  loadSales,
+  generateId
 } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -36,12 +40,16 @@ const Customers = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    setCustomers(loadCustomers());
+    fetchCustomers()
+      .then(setCustomers)
+      .catch(() => {
+        toast({ title: 'Error', description: 'Failed to load customers', variant: 'destructive' });
+      });
     setUtangPayments(loadUtangPayments());
     setSales(loadSales());
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.contact) {
@@ -54,42 +62,21 @@ const Customers = () => {
     }
 
     let updatedCustomers;
-    
-    if (editingCustomer) {
-      // Update existing customer
-      updatedCustomers = customers.map(customer =>
-        customer.id === editingCustomer.id
-          ? {
-              ...customer,
-              name: formData.name,
-              contact: formData.contact,
-              updatedAt: new Date().toISOString()
-            }
-          : customer
-      );
-      toast({
-        title: "Customer Updated",
-        description: `${formData.name} has been updated successfully.`
-      });
-    } else {
-      // Create new customer
-      const newCustomer: Customer = {
-        id: generateId(),
-        name: formData.name,
-        contact: formData.contact,
-        totalOwed: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      updatedCustomers = [...customers, newCustomer];
-      toast({
-        title: "Customer Added",
-        description: `${formData.name} has been added successfully.`
-      });
-    }
 
-    saveCustomers(updatedCustomers);
+    if (editingCustomer) {
+      if (editingCustomer.id) {
+        await apiUpdateCustomer(Number(editingCustomer.id), {
+          name: formData.name,
+          contact: formData.contact
+        });
+        toast({ title: 'Customer Updated', description: `${formData.name} updated.` });
+      }
+      updatedCustomers = await fetchCustomers();
+    } else {
+      await createCustomer({ name: formData.name, contact: formData.contact });
+      updatedCustomers = await fetchCustomers();
+      toast({ title: 'Customer Added', description: `${formData.name} added.` });
+    }
     setCustomers(updatedCustomers);
     resetForm();
     setIsDialogOpen(false);
@@ -143,10 +130,14 @@ const Customers = () => {
         : customer
     );
 
-    // Save updates
     const allPayments = [...utangPayments, payment];
     saveUtangPayments(allPayments);
-    saveCustomers(updatedCustomers);
+
+    if (selectedCustomer.id) {
+      await apiUpdateCustomer(Number(selectedCustomer.id), {
+        total_owed: selectedCustomer.totalOwed - actualPayment
+      });
+    }
 
     setUtangPayments(allPayments);
     setCustomers(updatedCustomers);
@@ -171,7 +162,7 @@ const Customers = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (customer: Customer) => {
+  const handleDelete = async (customer: Customer) => {
     if (customer.totalOwed > 0) {
       toast({
         title: "Cannot Delete Customer",
@@ -182,14 +173,12 @@ const Customers = () => {
     }
 
     if (window.confirm(`Are you sure you want to delete ${customer.name}?`)) {
-      const updatedCustomers = customers.filter(c => c.id !== customer.id);
-      saveCustomers(updatedCustomers);
-      setCustomers(updatedCustomers);
-      
-      toast({
-        title: "Customer Deleted",
-        description: `${customer.name} has been deleted.`
-      });
+      if (customer.id) {
+        await apiDeleteCustomer(Number(customer.id));
+        const updatedCustomers = await fetchCustomers();
+        setCustomers(updatedCustomers);
+        toast({ title: 'Customer Deleted', description: `${customer.name} deleted.` });
+      }
     }
   };
 
