@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { MobileForm, MobileFormField, MobileFormActions } from '@/components/ui/mobile-form';
+import { MobileInput } from '@/components/ui/mobile-input';
+import { MobileButton } from '@/components/ui/mobile-button';
 import { Customer, UtangPayment, Sale } from '@/types';
 import { 
   loadCustomers, 
@@ -16,6 +16,7 @@ import {
   generateId 
 } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Plus, Edit, Trash, User, DollarSign, History } from 'lucide-react';
 
 const Customers = () => {
@@ -32,6 +33,7 @@ const Customers = () => {
   });
   const [paymentAmount, setPaymentAmount] = useState('');
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setCustomers(loadCustomers());
@@ -192,12 +194,6 @@ const Customers = () => {
     }
   };
 
-  const openPaymentDialog = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setPaymentAmount('');
-    setIsPaymentDialogOpen(true);
-  };
-
   const resetForm = () => {
     setFormData({ name: '', contact: '' });
     setEditingCustomer(null);
@@ -206,6 +202,12 @@ const Customers = () => {
   const openAddDialog = () => {
     resetForm();
     setIsDialogOpen(true);
+  };
+
+  const openPaymentDialog = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setPaymentAmount('');
+    setIsPaymentDialogOpen(true);
   };
 
   const getCustomerTransactions = (customerId: string) => {
@@ -222,59 +224,60 @@ const Customers = () => {
   };
 
   const CustomerForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Customer Name</Label>
-        <Input
-          id="name"
+    <MobileForm onSubmit={handleSubmit}>
+      <MobileFormField
+        label="Customer Name"
+        required
+      >
+        <MobileInput
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="Enter customer name"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div>
-        <Label htmlFor="contact">Contact Number</Label>
-        <Input
-          id="contact"
+      <MobileFormField
+        label="Contact Number"
+        required
+      >
+        <MobileInput
           value={formData.contact}
           onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
           placeholder="Enter contact number"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div className="flex flex-col sm:flex-row gap-2 pt-4">
-        <Button type="submit" className="flex-1 btn-touch">
+      <MobileFormActions>
+        <MobileButton type="submit" fullWidth>
           {editingCustomer ? 'Update Customer' : 'Add Customer'}
-        </Button>
-        <Button 
+        </MobileButton>
+        <MobileButton 
           type="button" 
           variant="outline"
-          className="flex-1 btn-touch"
+          fullWidth
           onClick={() => setIsDialogOpen(false)}
         >
           Cancel
-        </Button>
-      </div>
-    </form>
+        </MobileButton>
+      </MobileFormActions>
+    </MobileForm>
   );
 
   const PaymentForm = () => (
     selectedCustomer && (
-      <form onSubmit={handlePayment} className="space-y-4">
-        <div className="bg-gray-50 p-3 rounded-lg text-sm">
-          <p><strong>Customer:</strong> {selectedCustomer.name}</p>
-          <p><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
+      <MobileForm onSubmit={handlePayment}>
+        <div className="bg-gray-50 p-4 rounded-lg mobile-item-spacing">
+          <p className="text-sm"><strong>Customer:</strong> {selectedCustomer.name}</p>
+          <p className="text-sm"><strong>Outstanding Balance:</strong> ₱{selectedCustomer.totalOwed.toFixed(2)}</p>
         </div>
         
-        <div>
-          <Label htmlFor="paymentAmount">Payment Amount (₱)</Label>
-          <Input
-            id="paymentAmount"
+        <MobileFormField
+          label="Payment Amount (₱)"
+          required
+        >
+          <MobileInput
             type="number"
             step="0.01"
             min="0"
@@ -282,198 +285,192 @@ const Customers = () => {
             value={paymentAmount}
             onChange={(e) => setPaymentAmount(e.target.value)}
             placeholder="0.00"
-            className="input-touch"
             required
           />
-        </div>
+        </MobileFormField>
         
-        <div className="flex flex-col sm:flex-row gap-2 pt-4">
-          <Button type="submit" className="flex-1 btn-touch">
+        <MobileFormActions>
+          <MobileButton type="submit" fullWidth>
             Record Payment
-          </Button>
-          <Button 
+          </MobileButton>
+          <MobileButton 
             type="button" 
             variant="outline"
-            className="flex-1 btn-touch"
+            fullWidth
             onClick={() => setIsPaymentDialogOpen(false)}
           >
             Cancel
-          </Button>
-        </div>
-      </form>
+          </MobileButton>
+        </MobileFormActions>
+      </MobileForm>
     )
   );
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Customer Management</h2>
-          <p className="text-sm md:text-base text-gray-600">Manage customers and their utang (credit) accounts</p>
+    <div className="mobile-container">
+      <div className="mobile-section-spacing">
+        {/* Header */}
+        <div className="space-y-3">
+          <div>
+            <h2 className="mobile-title">Customer Management</h2>
+            <p className="mobile-subtitle">Manage customers and their utang (credit) accounts</p>
+          </div>
+
+          {/* Add Button */}
+          {isMobile ? (
+            <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <SheetTrigger asChild>
+                <MobileButton onClick={openAddDialog} fullWidth>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Customer
+                </MobileButton>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[80vh] mobile-sheet-content">
+                <SheetHeader className="mb-6">
+                  <SheetTitle>
+                    {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+                  </SheetTitle>
+                </SheetHeader>
+                <CustomerForm />
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <MobileButton onClick={openAddDialog}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Customer
+                </MobileButton>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+                  </DialogTitle>
+                </DialogHeader>
+                <CustomerForm />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
-        {/* Mobile Add Button */}
-        <div className="md:hidden">
-          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <SheetTrigger asChild>
-              <Button onClick={openAddDialog} className="w-full btn-touch">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Customer
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh]">
+        {/* Customers Grid */}
+        <div className="mobile-grid-1-3">
+          {customers.map((customer) => (
+            <Card key={customer.id} className="mobile-card">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="mobile-title flex items-center gap-2 truncate">
+                      <User className="h-4 w-4 flex-shrink-0" />
+                      {customer.name}
+                    </CardTitle>
+                    <p className="mobile-subtitle truncate">{customer.contact}</p>
+                  </div>
+                  <Badge 
+                    variant={customer.totalOwed > 0 ? "destructive" : "secondary"}
+                    className="mobile-badge"
+                  >
+                    ₱{customer.totalOwed.toFixed(2)}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="mobile-item-spacing">
+                {customer.totalOwed > 0 && (
+                  <MobileButton
+                    size="sm"
+                    fullWidth
+                    onClick={() => openPaymentDialog(customer)}
+                  >
+                    <DollarSign className="h-3 w-3 mr-1" />
+                    Record Payment
+                  </MobileButton>
+                )}
+                
+                <div className="mobile-button-group">
+                  <MobileButton
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(customer)}
+                    fullWidth
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
+                  </MobileButton>
+                  <MobileButton
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(customer)}
+                    disabled={customer.totalOwed > 0}
+                  >
+                    <Trash className="h-3 w-3" />
+                  </MobileButton>
+                </div>
+
+                {/* Transaction History Preview */}
+                {getCustomerTransactions(customer.id).length > 0 && (
+                  <div className="pt-3 border-t">
+                    <div className="flex items-center gap-1 mb-2">
+                      <History className="h-3 w-3 text-gray-500" />
+                      <p className="text-xs text-gray-500">Recent Activity:</p>
+                    </div>
+                    <div className="space-y-1">
+                      {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
+                        <div key={transaction.id} className="text-xs flex justify-between items-center">
+                          <span className="truncate">
+                            {'items' in transaction ? 'Purchase' : 'Payment'}
+                          </span>
+                          <span className={
+                            'items' in transaction ? 'text-red-600' : 'text-green-600'
+                          }>
+                            {'items' in transaction ? '+' : '-'}₱{
+                              ('total' in transaction ? transaction.total : transaction.amount).toFixed(2)
+                            }
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Payment Dialog - Mobile */}
+        {isMobile ? (
+          <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <SheetContent side="bottom" className="h-[80vh] mobile-sheet-content">
               <SheetHeader className="mb-6">
-                <SheetTitle>
-                  {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-                </SheetTitle>
+                <SheetTitle>Record Payment</SheetTitle>
               </SheetHeader>
-              <CustomerForm />
+              <PaymentForm />
             </SheetContent>
           </Sheet>
-        </div>
-
-        {/* Desktop Add Button */}
-        <div className="hidden md:block">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openAddDialog}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Customer
-              </Button>
-            </DialogTrigger>
+        ) : (
+          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-                </DialogTitle>
+                <DialogTitle>Record Payment</DialogTitle>
               </DialogHeader>
-              <CustomerForm />
+              <PaymentForm />
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
+        )}
 
-      {/* Customers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {customers.map((customer) => (
-          <Card key={customer.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base md:text-lg flex items-center gap-2 truncate">
-                    <User className="h-4 w-4 flex-shrink-0" />
-                    {customer.name}
-                  </CardTitle>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">{customer.contact}</p>
-                </div>
-                <Badge 
-                  variant={customer.totalOwed > 0 ? "destructive" : "secondary"}
-                  className="text-xs"
-                >
-                  ₱{customer.totalOwed.toFixed(2)}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {customer.totalOwed > 0 && (
-                <Button
-                  size="sm"
-                  className="w-full touch-target"
-                  onClick={() => openPaymentDialog(customer)}
-                >
-                  <DollarSign className="h-3 w-3 mr-1" />
-                  Record Payment
-                </Button>
-              )}
-              
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(customer)}
-                  className="flex-1 touch-target"
-                >
-                  <Edit className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(customer)}
-                  disabled={customer.totalOwed > 0}
-                  className="touch-target"
-                >
-                  <Trash className="h-3 w-3" />
-                </Button>
-              </div>
-
-              {/* Transaction History Preview */}
-              {getCustomerTransactions(customer.id).length > 0 && (
-                <div className="pt-2 border-t">
-                  <div className="flex items-center gap-1 mb-2">
-                    <History className="h-3 w-3 text-gray-500" />
-                    <p className="text-xs text-gray-500">Recent Activity:</p>
-                  </div>
-                  <div className="space-y-1">
-                    {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
-                      <div key={transaction.id} className="text-xs flex justify-between items-center">
-                        <span className="truncate">
-                          {'items' in transaction ? 'Purchase' : 'Payment'}
-                        </span>
-                        <span className={
-                          'items' in transaction ? 'text-red-600' : 'text-green-600'
-                        }>
-                          {'items' in transaction ? '+' : '-'}₱{
-                            ('total' in transaction ? transaction.total : transaction.amount).toFixed(2)
-                          }
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {/* Empty State */}
+        {customers.length === 0 && (
+          <Card className="mobile-card">
+            <CardContent className="text-center py-12">
+              <p className="mobile-subtitle mb-4">No customers added yet.</p>
+              <MobileButton onClick={openAddDialog}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Customer
+              </MobileButton>
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
-
-      {/* Payment Dialog - Mobile */}
-      <div className="md:hidden">
-        <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-          <SheetContent side="bottom" className="h-[80vh]">
-            <SheetHeader className="mb-6">
-              <SheetTitle>Record Payment</SheetTitle>
-            </SheetHeader>
-            <PaymentForm />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* Payment Dialog - Desktop */}
-      <div className="hidden md:block">
-        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Record Payment</DialogTitle>
-            </DialogHeader>
-            <PaymentForm />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Empty State */}
-      {customers.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8 md:py-12">
-            <p className="text-gray-500 text-sm md:text-base">No customers added yet.</p>
-            <Button onClick={openAddDialog} className="mt-4 btn-touch">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Customer
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

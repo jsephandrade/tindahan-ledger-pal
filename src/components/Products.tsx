@@ -1,15 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { MobileForm, MobileFormField, MobileFormActions } from '@/components/ui/mobile-form';
+import { MobileInput } from '@/components/ui/mobile-input';
+import { MobileButton } from '@/components/ui/mobile-button';
 import { Product } from '@/types';
 import { loadProducts, saveProducts, generateId } from '@/utils/storage';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Plus, Edit, Trash, Search } from 'lucide-react';
 
 const Products = () => {
@@ -24,6 +25,7 @@ const Products = () => {
     stockQuantity: ''
   });
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setProducts(loadProducts());
@@ -157,205 +159,203 @@ const Products = () => {
   };
 
   const ProductForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Product Name</Label>
-        <Input
-          id="name"
+    <MobileForm onSubmit={handleSubmit}>
+      <MobileFormField
+        label="Product Name"
+        required
+      >
+        <MobileInput
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="Enter product name"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div>
-        <Label htmlFor="sku">SKU/Code</Label>
-        <Input
-          id="sku"
+      <MobileFormField
+        label="SKU/Code"
+        required
+      >
+        <MobileInput
           value={formData.sku}
           onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
           placeholder="Enter SKU or product code"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div>
-        <Label htmlFor="unitPrice">Unit Price (₱)</Label>
-        <Input
-          id="unitPrice"
+      <MobileFormField
+        label="Unit Price (₱)"
+        required
+      >
+        <MobileInput
           type="number"
           step="0.01"
           min="0"
           value={formData.unitPrice}
           onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
           placeholder="0.00"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div>
-        <Label htmlFor="stockQuantity">Stock Quantity</Label>
-        <Input
-          id="stockQuantity"
+      <MobileFormField
+        label="Stock Quantity"
+        required
+      >
+        <MobileInput
           type="number"
           min="0"
           value={formData.stockQuantity}
           onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
           placeholder="0"
-          className="input-touch"
           required
         />
-      </div>
+      </MobileFormField>
       
-      <div className="flex flex-col sm:flex-row gap-2 pt-4">
-        <Button type="submit" className="flex-1 btn-touch">
+      <MobileFormActions>
+        <MobileButton type="submit" fullWidth>
           {editingProduct ? 'Update Product' : 'Add Product'}
-        </Button>
-        <Button 
+        </MobileButton>
+        <MobileButton 
           type="button" 
           variant="outline"
-          className="flex-1 btn-touch"
+          fullWidth
           onClick={() => setIsDialogOpen(false)}
         >
           Cancel
-        </Button>
-      </div>
-    </form>
+        </MobileButton>
+      </MobileFormActions>
+    </MobileForm>
   );
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Products & Inventory</h2>
-          <p className="text-sm md:text-base text-gray-600">Manage your store's product catalog</p>
-        </div>
-
-        {/* Mobile Add Button */}
-        <div className="md:hidden">
-          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <SheetTrigger asChild>
-              <Button onClick={openAddDialog} className="w-full btn-touch">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[90vh]">
-              <SheetHeader className="mb-6">
-                <SheetTitle>
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
-                </SheetTitle>
-              </SheetHeader>
-              <ProductForm />
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        {/* Desktop Add Button */}
-        <div className="hidden md:block">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openAddDialog}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
-                </DialogTitle>
-              </DialogHeader>
-              <ProductForm />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-4 md:pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search products by name or SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 input-touch"
-            />
+    <div className="mobile-container">
+      <div className="mobile-section-spacing">
+        {/* Header */}
+        <div className="space-y-3">
+          <div>
+            <h2 className="mobile-title">Products & Inventory</h2>
+            <p className="mobile-subtitle">Manage your store's product catalog</p>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {filteredProducts.map((product) => (
-          <Card key={product.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base md:text-lg truncate">{product.name}</CardTitle>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">{product.sku}</p>
-                </div>
-                <Badge 
-                  variant={product.stockQuantity > 10 ? "secondary" : 
-                    product.stockQuantity > 0 ? "outline" : "destructive"}
-                  className="text-xs"
-                >
-                  {product.stockQuantity}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-lg md:text-2xl font-bold text-green-600">
-                ₱{product.unitPrice.toFixed(2)}
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(product)}
-                  className="flex-1 touch-target"
-                >
-                  <Edit className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(product)}
-                  className="touch-target"
-                >
-                  <Trash className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          {/* Add Button */}
+          {isMobile ? (
+            <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <SheetTrigger asChild>
+                <MobileButton onClick={openAddDialog} fullWidth>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Product
+                </MobileButton>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[90vh] mobile-sheet-content">
+                <SheetHeader className="mb-6">
+                  <SheetTitle>
+                    {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  </SheetTitle>
+                </SheetHeader>
+                <ProductForm />
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <MobileButton onClick={openAddDialog}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Product
+                </MobileButton>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  </DialogTitle>
+                </DialogHeader>
+                <ProductForm />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
 
-      {/* Empty State */}
-      {filteredProducts.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8 md:py-12">
-            <p className="text-gray-500 text-sm md:text-base">
-              {searchTerm ? 'No products found matching your search.' : 'No products added yet.'}
-            </p>
-            {!searchTerm && (
-              <Button onClick={openAddDialog} className="mt-4 btn-touch">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Product
-              </Button>
-            )}
+        {/* Search */}
+        <Card className="mobile-card">
+          <CardContent className="pt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <MobileInput
+                placeholder="Search products by name or SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* Products Grid */}
+        <div className="mobile-grid-1-3">
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className="mobile-card">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="mobile-title truncate">{product.name}</CardTitle>
+                    <p className="mobile-subtitle truncate">{product.sku}</p>
+                  </div>
+                  <Badge 
+                    variant={product.stockQuantity > 10 ? "secondary" : 
+                      product.stockQuantity > 0 ? "outline" : "destructive"}
+                    className="mobile-badge"
+                  >
+                    {product.stockQuantity}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="mobile-item-spacing">
+                <div className="text-xl font-bold text-green-600">
+                  ₱{product.unitPrice.toFixed(2)}
+                </div>
+                
+                <div className="mobile-button-group">
+                  <MobileButton
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(product)}
+                    fullWidth
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
+                  </MobileButton>
+                  <MobileButton
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(product)}
+                  >
+                    <Trash className="h-3 w-3" />
+                  </MobileButton>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredProducts.length === 0 && (
+          <Card className="mobile-card">
+            <CardContent className="text-center py-12">
+              <p className="mobile-subtitle mb-4">
+                {searchTerm ? 'No products found matching your search.' : 'No products added yet.'}
+              </p>
+              {!searchTerm && (
+                <MobileButton onClick={openAddDialog}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Product
+                </MobileButton>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
