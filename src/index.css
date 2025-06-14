@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,5 +100,46 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Mobile-specific utilities */
+@layer utilities {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improved touch targets for mobile */
+  @media (max-width: 768px) {
+    .btn-touch {
+      @apply h-12 px-6 text-base;
+    }
+    
+    .input-touch {
+      @apply h-12 text-base;
+    }
+  }
+}
+
+/* Custom scrollbars for mobile */
+@layer base {
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 2px;
+    }
   }
 }
