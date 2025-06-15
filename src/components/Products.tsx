@@ -42,7 +42,7 @@ const Products = () => {
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.sku || !formData.unitPrice || !formData.stockQuantity) {
@@ -80,11 +80,11 @@ const Products = () => {
     if (editingProduct) {
       // Update existing product
       if (editingProduct?.id) {
-        await apiUpdateProduct(Number(editingProduct.id), {
+        await apiUpdateProduct(editingProduct.id, {
           name: formData.name,
           sku: formData.sku,
-          unit_price: unitPrice,
-          stock_quantity: stockQuantity
+          unitPrice: unitPrice,
+          stockQuantity: stockQuantity
         });
         toast({ title: 'Product Updated', description: `${formData.name} updated.` });
       }
@@ -93,8 +93,8 @@ const Products = () => {
       await createProduct({
         name: formData.name,
         sku: formData.sku,
-        unit_price: unitPrice,
-        stock_quantity: stockQuantity
+        unitPrice: unitPrice,
+        stockQuantity: stockQuantity
       });
       updatedProducts = await fetchProducts();
       toast({ title: 'Product Added', description: `${formData.name} added.` });
@@ -118,7 +118,7 @@ const Products = () => {
   const handleDelete = async (product: Product) => {
     if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
       if (product.id) {
-        await apiDeleteProduct(Number(product.id));
+        await apiDeleteProduct(product.id);
         const updatedProducts = await fetchProducts();
         setProducts(updatedProducts);
         toast({ title: 'Product Deleted', description: `${product.name} deleted.` });

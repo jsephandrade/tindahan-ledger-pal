@@ -17,9 +17,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const calculateStats = async () => {
-      const products = await fetchProducts();
-      const customers = await fetchCustomers();
-      const sales = loadSales();
+      try {
+        const products = await fetchProducts();
+        const customers = await fetchCustomers();
+        const sales = loadSales();
       
       const today = new Date().toDateString();
       const todaySales = sales.filter(sale => 
@@ -42,13 +43,16 @@ const Dashboard = () => {
         product.stockQuantity <= 10
       );
 
-      setStats({
-        totalSalesToday,
-        cashSalesToday,
-        utangSalesToday,
-        totalUtangOutstanding,
-        lowStockProducts
-      });
+        setStats({
+          totalSalesToday,
+          cashSalesToday,
+          utangSalesToday,
+          totalUtangOutstanding,
+          lowStockProducts
+        });
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      }
     };
 
     calculateStats();

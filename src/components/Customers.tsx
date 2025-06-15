@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +66,7 @@ const Customers = () => {
 
     if (editingCustomer) {
       if (editingCustomer.id) {
-        await apiUpdateCustomer(Number(editingCustomer.id), {
+        await apiUpdateCustomer(editingCustomer.id, {
           name: formData.name,
           contact: formData.contact
         });
@@ -82,7 +83,7 @@ const Customers = () => {
     setIsDialogOpen(false);
   };
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedCustomer || !paymentAmount) {
@@ -134,8 +135,8 @@ const Customers = () => {
     saveUtangPayments(allPayments);
 
     if (selectedCustomer.id) {
-      await apiUpdateCustomer(Number(selectedCustomer.id), {
-        total_owed: selectedCustomer.totalOwed - actualPayment
+      await apiUpdateCustomer(selectedCustomer.id, {
+        totalOwed: selectedCustomer.totalOwed - actualPayment
       });
     }
 
@@ -174,7 +175,7 @@ const Customers = () => {
 
     if (window.confirm(`Are you sure you want to delete ${customer.name}?`)) {
       if (customer.id) {
-        await apiDeleteCustomer(Number(customer.id));
+        await apiDeleteCustomer(customer.id);
         const updatedCustomers = await fetchCustomers();
         setCustomers(updatedCustomers);
         toast({ title: 'Customer Deleted', description: `${customer.name} deleted.` });
@@ -405,14 +406,14 @@ const Customers = () => {
                 </div>
 
                 {/* Transaction History Preview */}
-                {getCustomerTransactions(customer.id).length > 0 && (
+                {getCustomerTransactions(String(customer.id)).length > 0 && (
                   <div className="pt-3 border-t">
                     <div className="flex items-center gap-1 mb-2">
                       <History className="h-3 w-3 text-gray-500" />
                       <p className="text-xs text-gray-500">Recent Activity:</p>
                     </div>
                     <div className="space-y-1">
-                      {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
+                      {getCustomerTransactions(String(customer.id)).slice(0, 2).map((transaction) => (
                         <div key={transaction.id} className="text-xs flex justify-between items-center">
                           <span className="truncate">
                             {'items' in transaction ? 'Purchase' : 'Payment'}
