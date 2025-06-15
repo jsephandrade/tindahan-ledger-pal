@@ -39,8 +39,8 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unit_price ?? data.unitPrice,
-      stock_quantity: data.stock_quantity ?? data.stockQuantity
+      unit_price: data.unitPrice ?? data.unitPrice,
+      stock_quantity: data.stockQuantity ?? data.stockQuantity
     })
   });
   if (!res.ok) throw new Error('Failed to create product');
@@ -63,8 +63,8 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unit_price ?? data.unitPrice,
-      stock_quantity: data.stock_quantity ?? data.stockQuantity,
+      unit_price: data.unitPrice ?? data.unitPrice,
+      stock_quantity: data.stockQuantity ?? data.stockQuantity,
       total_owed: (data as any).total_owed
     })
   });
@@ -106,7 +106,7 @@ export async function createCustomer(data: Partial<Customer>): Promise<Customer>
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.total_owed ?? data.totalOwed
+      total_owed: data.totalOwed ?? data.totalOwed
     })
   });
   if (!res.ok) throw new Error('Failed to create customer');
@@ -128,7 +128,7 @@ export async function updateCustomer(id: number, data: Partial<Customer>): Promi
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.total_owed ?? data.totalOwed
+      total_owed: data.totalOwed ?? data.totalOwed
     })
   });
   if (!res.ok) throw new Error('Failed to update customer');

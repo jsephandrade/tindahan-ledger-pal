@@ -20,6 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Trash, DollarSign, User, ShoppingCart } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { fetchProducts, fetchCustomers } from '@/utils/api';
 
 const MobilePOS = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -32,9 +33,43 @@ const MobilePOS = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    setProducts(loadProducts());
-    setCustomers(loadCustomers());
-  }, []);
+  const loadApiData = async () => {
+    try {
+      // ─── Fetch & map products ───────────────────────────────────────────────
+      const prods = await fetchProducts();
+      console.log('API products →', prods);
+      const mappedProds: Product[] = prods.map(p => ({
+        id:            p.id,
+        name:          p.name,
+        sku:           p.sku,
+        unitPrice:     Number(p.unitPrice),     // snake_case → camelCase + Number()
+        stockQuantity: p.stockQuantity,         // snake_case → camelCase
+        createdAt:     p.createdAt,
+        updatedAt:     p.updatedAt,
+      }));
+      setProducts(mappedProds);
+
+      // ─── Fetch & map customers ──────────────────────────────────────────────
+      const custs = await fetchCustomers();
+      console.log('API customers →', custs);
+      const mappedCusts: Customer[] = custs.map(c => ({
+        id:        c.id,
+        name:      c.name,
+        contact:   c.contact ?? '',              // Ensure contact is present, fallback to empty string if missing
+        totalOwed: Number(c.totalOwed),         // snake_case → camelCase + Number()
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        // …any other fields your Customer type needs
+      }));
+      setCustomers(mappedCusts);
+
+    } catch (err) {
+      console.error('Failed to load API data', err);
+    }
+  };
+
+  loadApiData();
+}, []);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +86,7 @@ const MobilePOS = () => {
       return;
     }
 
-    const existingItem = cart.find(item => item.productId === product.id);
+    const existingItem = cart.find(item => item.productId === String(product.id));
     if (existingItem) {
       if (existingItem.quantity >= product.stockQuantity) {
         toast({
@@ -61,10 +96,10 @@ const MobilePOS = () => {
         });
         return;
       }
-      updateQuantity(product.id, existingItem.quantity + 1);
+      updateQuantity(String(product.id), existingItem.quantity + 1);
     } else {
       const newItem: SaleItem = {
-        productId: product.id,
+        productId: String(product.id),
         productName: product.name,
         quantity: 1,
         unitPrice: product.unitPrice,
@@ -80,7 +115,7 @@ const MobilePOS = () => {
       return;
     }
 
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => String(p.id) === productId);
     if (product && newQuantity > product.stockQuantity) {
       toast({
         title: "Insufficient Stock",
@@ -126,7 +161,7 @@ const MobilePOS = () => {
 
     // Create sale record
     const total = calculateTotal();
-    const customer = customers.find(c => c.id === selectedCustomer);
+    const customer = customers.find(c => String(c.id) === selectedCustomer);
     
     const sale: Sale = {
       id: generateId(),
@@ -142,7 +177,7 @@ const MobilePOS = () => {
 
     // Update product stock
     const updatedProducts = products.map(product => {
-      const cartItem = cart.find(item => item.productId === product.id);
+      const cartItem = cart.find(item => item.productId === String(product.id));
       if (cartItem) {
         return {
           ...product,
@@ -159,7 +194,7 @@ const MobilePOS = () => {
 
     if (paymentType === 'utang' && customer) {
       updatedCustomers = customers.map(c =>
-        c.id === selectedCustomer
+        String(c.id) === selectedCustomer
           ? { ...c, totalOwed: c.totalOwed + total, updatedAt: new Date().toISOString() }
           : c
       );
@@ -322,7 +357,7 @@ const MobilePOS = () => {
                             </SelectTrigger>
                             <SelectContent>
                               {customers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
+                                <SelectItem key={customer.id} value={String(customer.id)}>
                                   {customer.name} (₱{customer.totalOwed.toFixed(2)} owed)
                                 </SelectItem>
                               ))}
@@ -524,7 +559,7 @@ const MobilePOS = () => {
                             </SelectTrigger>
                             <SelectContent>
                               {customers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
+                                <SelectItem key={customer.id} value={String(customer.id)}>
                                   {customer.name} (₱{customer.totalOwed.toFixed(2)} owed)
                                 </SelectItem>
                               ))}

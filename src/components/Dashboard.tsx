@@ -54,6 +54,13 @@ const Dashboard = () => {
     calculateStats();
   }, []);
 
+  console.log(
+    'totalUtangOutstanding →',
+    stats.totalUtangOutstanding,
+    'typeof →',
+    typeof stats.totalUtangOutstanding
+  );
+
   return (
     <div className="mobile-container space-y-6">
       <div className="pt-2">
@@ -110,7 +117,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              ₱{stats.totalUtangOutstanding.toFixed(2)}
+            ₱{Number(stats.totalUtangOutstanding).toFixed(2)}
             </div>
           </CardContent>
         </Card>

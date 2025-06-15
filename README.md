@@ -1,16 +1,16 @@
 # Welcome to your Lovable project
+
 ## Backend Setup (Django)
 
 Run these commands to start the backend:
+
 ```sh
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
-export DATABASE_URL=postgres://USER:PASS@HOST:PORT/DBNAME
 python myproject/manage.py migrate
 python myproject/manage.py runserver
 ```
-
 
 ## Project info
 

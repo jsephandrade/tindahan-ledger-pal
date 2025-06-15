@@ -42,7 +42,7 @@ const Products = () => {
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.sku || !formData.unitPrice || !formData.stockQuantity) {
@@ -83,8 +83,8 @@ const Products = () => {
         await apiUpdateProduct(Number(editingProduct.id), {
           name: formData.name,
           sku: formData.sku,
-          unit_price: unitPrice,
-          stock_quantity: stockQuantity
+          unitPrice: unitPrice,
+          stockQuantity: stockQuantity
         });
         toast({ title: 'Product Updated', description: `${formData.name} updated.` });
       }
@@ -93,8 +93,8 @@ const Products = () => {
       await createProduct({
         name: formData.name,
         sku: formData.sku,
-        unit_price: unitPrice,
-        stock_quantity: stockQuantity
+        unitPrice: unitPrice,
+        stockQuantity: stockQuantity
       });
       updatedProducts = await fetchProducts();
       toast({ title: 'Product Added', description: `${formData.name} added.` });
@@ -291,7 +291,7 @@ const Products = () => {
               </CardHeader>
               <CardContent className="mobile-item-spacing">
                 <div className="text-xl font-bold text-green-600">
-                  ₱{product.unitPrice.toFixed(2)}
+                  ₱{Number(product.unitPrice).toFixed(2)}
                 </div>
                 
                 <div className="mobile-button-group">

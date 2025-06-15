@@ -98,10 +98,10 @@ const UtangDetails = () => {
     };
 
     // Update customer total owed
-    const customer = customers.find(c => c.id === selectedTransaction.customerId);
+    const customer = customers.find(c => String(c.id) === String(selectedTransaction.customerId));
     if (customer) {
       const updatedCustomers = customers.map(c =>
-        c.id === selectedTransaction.customerId
+        String(c.id) === String(selectedTransaction.customerId)
           ? { ...c, totalOwed: c.totalOwed - actualPayment, updatedAt: new Date().toISOString() }
           : c
       );
@@ -224,7 +224,7 @@ const UtangDetails = () => {
         {/* Customers with Utang */}
         <div className="mobile-grid-1-3">
           {customers.filter(customer => customer.totalOwed > 0).map((customer) => {
-            const utangSummary = getCustomerUtangSummary(customer.id);
+            const utangSummary = getCustomerUtangSummary(String(customer.id));
             return (
               <Card key={customer.id} className="mobile-card">
                 <CardHeader className="pb-3">

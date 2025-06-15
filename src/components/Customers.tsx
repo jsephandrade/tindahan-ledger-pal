@@ -82,7 +82,7 @@ const Customers = () => {
     setIsDialogOpen(false);
   };
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedCustomer || !paymentAmount) {
@@ -111,7 +111,7 @@ const Customers = () => {
     // Create payment record
     const payment: UtangPayment = {
       id: generateId(),
-      customerId: selectedCustomer.id,
+      customerId: String(selectedCustomer.id),
       amount: actualPayment,
       description: change > 0 
         ? `Payment for utang balance (Change: ₱${change.toFixed(2)})`
@@ -135,7 +135,7 @@ const Customers = () => {
 
     if (selectedCustomer.id) {
       await apiUpdateCustomer(Number(selectedCustomer.id), {
-        total_owed: selectedCustomer.totalOwed - actualPayment
+        totalOwed: selectedCustomer.totalOwed - actualPayment
       });
     }
 
@@ -368,7 +368,7 @@ const Customers = () => {
                     variant={customer.totalOwed > 0 ? "destructive" : "secondary"}
                     className="mobile-badge"
                   >
-                    ₱{customer.totalOwed.toFixed(2)}
+                    ₱{Number(customer.totalOwed).toFixed(2)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -405,14 +405,14 @@ const Customers = () => {
                 </div>
 
                 {/* Transaction History Preview */}
-                {getCustomerTransactions(customer.id).length > 0 && (
+                {getCustomerTransactions(String(customer.id)).length > 0 && (
                   <div className="pt-3 border-t">
                     <div className="flex items-center gap-1 mb-2">
                       <History className="h-3 w-3 text-gray-500" />
                       <p className="text-xs text-gray-500">Recent Activity:</p>
                     </div>
                     <div className="space-y-1">
-                      {getCustomerTransactions(customer.id).slice(0, 2).map((transaction) => (
+                      {getCustomerTransactions(String(customer.id)).slice(0, 2).map((transaction) => (
                         <div key={transaction.id} className="text-xs flex justify-between items-center">
                           <span className="truncate">
                             {'items' in transaction ? 'Purchase' : 'Payment'}
