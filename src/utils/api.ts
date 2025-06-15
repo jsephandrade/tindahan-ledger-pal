@@ -1,7 +1,6 @@
 import { Product, Customer } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
 const tokenKey = 'auth_token';
 
 export const getToken = () => localStorage.getItem(tokenKey);
@@ -39,8 +38,8 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unitPrice ?? data.unitPrice,
-      stock_quantity: data.stockQuantity ?? data.stockQuantity
+      unit_price: data.unitPrice,
+      stock_quantity: data.stockQuantity
     })
   });
   if (!res.ok) throw new Error('Failed to create product');
@@ -63,9 +62,8 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
     body: JSON.stringify({
       name: data.name,
       sku: data.sku,
-      unit_price: data.unitPrice ?? data.unitPrice,
-      stock_quantity: data.stockQuantity ?? data.stockQuantity,
-      total_owed: (data as any).total_owed
+      unit_price: data.unitPrice,
+      stock_quantity: data.stockQuantity
     })
   });
   if (!res.ok) throw new Error('Failed to update product');
@@ -106,7 +104,7 @@ export async function createCustomer(data: Partial<Customer>): Promise<Customer>
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.totalOwed ?? data.totalOwed
+      total_owed: data.totalOwed
     })
   });
   if (!res.ok) throw new Error('Failed to create customer');
@@ -128,7 +126,7 @@ export async function updateCustomer(id: number, data: Partial<Customer>): Promi
     body: JSON.stringify({
       name: data.name,
       contact: data.contact,
-      total_owed: data.totalOwed ?? data.totalOwed
+      total_owed: data.totalOwed
     })
   });
   if (!res.ok) throw new Error('Failed to update customer');
@@ -165,4 +163,75 @@ export async function register(username: string, email: string, password: string
     body: JSON.stringify({ username, email, password })
   });
   if (!res.ok) throw new Error('Registration failed');
+}
+
+// ─── UtangTransaction helpers ────────────────────────────────────────────
+
+export interface UtangPayload {
+  customer: number;
+  product: number;
+  sale?: number;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  amount_paid: number;
+  remaining: number;
+  status: 'unpaid' | 'paid';
+}
+
+export async function createUtang(data: UtangPayload) {
+  const res = await fetch(`${BASE_URL}/utang/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Utang POST failed ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+export interface UtangResponse {
+  id: number;
+  quantity: number;
+  unit_price: string;
+  total_amount: string;
+  amount_paid: string;
+  remaining: string;
+  status: 'unpaid' | 'paid';
+  created_at: string;
+  updated_at: string;
+  customer: number;
+  product: number;
+  customer_name: string;
+  product_name: string;
+}
+
+export async function fetchUtang(): Promise<UtangResponse[]> {
+  const res = await fetch(`${BASE_URL}/utang/`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch utang data');
+  return res.json();
+}
+
+// ─── NEW: Update an existing UtangTransaction ───────────────────────────
+export interface UtangUpdatePayload {
+  amount_paid: number;
+  status: 'unpaid' | 'paid';
+}
+
+export async function updateUtang(
+  id: number,
+  data: UtangUpdatePayload
+) {
+  const res = await fetch(`${BASE_URL}/utang/${id}/`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to update utang ${id}: ${res.status} ${text}`);
+  }
+  return res.json();
 }

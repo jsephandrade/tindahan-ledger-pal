@@ -1,13 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from api.views import RegisterView, TaskViewSet, ProductViewSet, CustomerViewSet
+from api.views import RegisterView, TaskViewSet, ProductViewSet, CustomerViewSet, UtangTransactionViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'customers', CustomerViewSet, basename='customer')
+router.register(r'utang', UtangTransactionViewSet, basename='utangtransaction')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

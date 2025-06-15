@@ -20,7 +20,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Trash, DollarSign, User, ShoppingCart } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { fetchProducts, fetchCustomers } from '@/utils/api';
+import { fetchProducts, fetchCustomers, createUtang } from '@/utils/api';
+import type { UtangPayload } from '@/utils/api';
 
 const MobilePOS = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -140,94 +141,101 @@ const MobilePOS = () => {
     return cart.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const processSale = () => {
+  // ─── Process sale & POST utang if needed ───────────────────────────────
+  const processSale = async () => {
     if (cart.length === 0) {
-      toast({
-        title: "Empty Cart",
-        description: "Please add items to cart before processing sale.",
-        variant: "destructive"
-      });
+      toast({ title: 'Empty Cart', description: 'Add items before checkout.', variant: 'destructive' });
       return;
     }
-
     if (paymentType === 'utang' && !selectedCustomer) {
-      toast({
-        title: "Select Customer",
-        description: "Please select a customer for utang transactions.",
-        variant: "destructive"
-      });
+      toast({ title: 'Select Customer', description: 'Choose a customer for credit sale.', variant: 'destructive' });
       return;
     }
 
-    // Create sale record
-    const total = calculateTotal();
+    // 1) Build local Sale object
+    const total    = calculateTotal();
     const customer = customers.find(c => String(c.id) === selectedCustomer);
-    
     const sale: Sale = {
-      id: generateId(),
-      items: [...cart],
-      subtotal: total,
-      total: total,
+      id:           generateId(),
+      items:        [...cart],
+      subtotal:     total,
+      total:        total,
       paymentType,
-      customerId: paymentType === 'utang' ? selectedCustomer : undefined,
+      customerId:   paymentType === 'utang' ? selectedCustomer : undefined,
       customerName: paymentType === 'utang' ? customer?.name : undefined,
-      createdAt: new Date().toISOString(),
-      status: 'completed'
+      createdAt:    new Date().toISOString(),
+      status:       'completed',
     };
 
-    // Update product stock
-    const updatedProducts = products.map(product => {
-      const cartItem = cart.find(item => item.productId === String(product.id));
-      if (cartItem) {
-        return {
-          ...product,
-          stockQuantity: product.stockQuantity - cartItem.quantity,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return product;
+    // 2) Update local stock & customer balances
+    const updatedProducts = products.map(p => {
+      const item = cart.find(i => i.productId === String(p.id));
+      return item
+        ? { ...p, stockQuantity: p.stockQuantity - item.quantity, updatedAt: new Date().toISOString() }
+        : p;
     });
+    const updatedCustomers = paymentType === 'utang' && customer
+      ? customers.map(c =>
+          String(c.id) === selectedCustomer
+            ? { ...c, totalOwed: c.totalOwed + total, updatedAt: new Date().toISOString() }
+            : c
+        )
+      : customers;
 
-    // Update customer utang if applicable and create utang transactions
-    let updatedCustomers = customers;
-    let utangTransactions: UtangTransaction[] = [];
+    // 3) Build utang payloads for API
+    const utangPayloads: UtangPayload[] = paymentType === 'utang' && customer
+      ? cart.map(item => ({
+          customer:     Number(selectedCustomer),
+          product:      Number(item.productId),
+          sale:         Number(sale.id),
+          quantity:     item.quantity,
+          unit_price:   item.unitPrice,
+          total_amount: item.total,
+          amount_paid:  0,
+          remaining:    item.total,
+          status:       'unpaid',
+        }))
+      : [];
 
-    if (paymentType === 'utang' && customer) {
-      updatedCustomers = customers.map(c =>
-        String(c.id) === selectedCustomer
-          ? { ...c, totalOwed: c.totalOwed + total, updatedAt: new Date().toISOString() }
-          : c
-      );
-
-      // Create individual utang transactions for each cart item
-      utangTransactions = cart.map(item => ({
-        id: generateId(),
-        customerId: selectedCustomer,
-        saleId: sale.id,
-        productId: item.productId,
-        productName: item.productName,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalAmount: item.total,
-        amountPaid: 0,
-        remainingBalance: item.total,
-        status: 'unpaid' as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }));
-
-      // Save utang transactions
-      const existingUtangTransactions = loadUtangTransactions();
-      saveUtangTransactions([...existingUtangTransactions, ...utangTransactions]);
-    }
-
-    // Save everything
-    const allSales = loadSales();
-    saveSales([...allSales, sale]);
+    // 4) Persist locally
+    saveSales([...loadSales(), sale]);
     saveProducts(updatedProducts);
     saveCustomers(updatedCustomers);
+    saveUtangTransactions([
+      ...loadUtangTransactions(),
+      ...utangPayloads.map(p => ({
+        id:               generateId(),
+        customerId:       String(p.customer),
+        saleId:           p.sale.toString(),
+        productId:        p.product.toString(),
+        productName:      cart.find(i => i.productId === String(p.product))?.productName || '',
+        quantity:         p.quantity,
+        unitPrice:        p.unit_price,
+        totalAmount:      p.total_amount,
+        amountPaid:       p.amount_paid,
+        remainingBalance: p.remaining,
+        status:           p.status,
+        createdAt:        new Date().toISOString(),
+        updatedAt:        new Date().toISOString(),
+      }))
+    ]);
 
-    // Update state
+    // 5) POST utang to server
+    if (utangPayloads.length) {
+      try {
+        await Promise.all(utangPayloads.map(p => createUtang(p)));
+        toast({ title: 'Credit transactions saved on server!' });
+      } catch (err) {
+        console.error(err);
+        toast({
+          title: 'Server error',
+          description: (err as Error).message,
+          variant: 'destructive',
+        });
+      }
+    }
+
+    // 6) Clear UI state
     setProducts(updatedProducts);
     setCustomers(updatedCustomers);
     setCart([]);
@@ -236,8 +244,8 @@ const MobilePOS = () => {
     setIsCartOpen(false);
 
     toast({
-      title: "Sale Completed",
-      description: `Sale of ₱${total.toFixed(2)} processed successfully.`
+      title: 'Sale Completed',
+      description: `Processed ₱${total.toFixed(2)} successfully.`,
     });
   };
 

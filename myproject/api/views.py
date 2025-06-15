@@ -1,6 +1,6 @@
 from rest_framework import generics, viewsets, permissions
-from .models import Task, User, Product, Customer
-from .serializers import TaskSerializer, UserSerializer, ProductSerializer, CustomerSerializer
+from .models import Task, User, Product, Customer, UtangTransaction
+from .serializers import TaskSerializer, UserSerializer, ProductSerializer, CustomerSerializer, UtangTransactionSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -40,3 +40,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+class UtangTransactionViewSet(viewsets.ModelViewSet):
+    queryset = UtangTransaction.objects.select_related('customer','product','sale').all()
+    serializer_class = UtangTransactionSerializer
